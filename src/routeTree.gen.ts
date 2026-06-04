@@ -9,38 +9,272 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiWizardSubmitRouteImport } from './routes/api/wizard.submit'
+import { Route as ApiPublicSuggestAxesRouteImport } from './routes/api/public/suggest-axes'
+import { Route as ApiPublicMapsConfigRouteImport } from './routes/api/public/maps-config'
+import { Route as ApiPublicGenerationWebhookRouteImport } from './routes/api/public/generation-webhook'
+import { Route as AuthenticatedAppStudiesRouteImport } from './routes/_authenticated/app.studies'
+import { Route as AuthenticatedAdminStudiesRouteImport } from './routes/_authenticated/admin.studies'
+import { Route as AuthenticatedAdminProfilesRouteImport } from './routes/_authenticated/admin.profiles'
+import { Route as AuthenticatedAdminPresetsRouteImport } from './routes/_authenticated/admin.presets'
+import { Route as AuthenticatedAdminMastersRouteImport } from './routes/_authenticated/admin.masters'
+import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authenticated/admin.dashboard'
+import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated/admin.crm'
+import { Route as AuthenticatedAdminCompaniesRouteImport } from './routes/_authenticated/admin.companies'
+import { Route as ApiPublicBrandPresetSlugRouteImport } from './routes/api/public/brand-preset.$slug'
+import { Route as AuthenticatedAppStudiesNewRouteImport } from './routes/_authenticated/app.studies.new'
+import { Route as AuthenticatedAppStudiesIdRouteImport } from './routes/_authenticated/app.studies.$id'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWizardSubmitRoute = ApiWizardSubmitRouteImport.update({
+  id: '/api/wizard/submit',
+  path: '/api/wizard/submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSuggestAxesRoute = ApiPublicSuggestAxesRouteImport.update({
+  id: '/api/public/suggest-axes',
+  path: '/api/public/suggest-axes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicMapsConfigRoute = ApiPublicMapsConfigRouteImport.update({
+  id: '/api/public/maps-config',
+  path: '/api/public/maps-config',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicGenerationWebhookRoute =
+  ApiPublicGenerationWebhookRouteImport.update({
+    id: '/api/public/generation-webhook',
+    path: '/api/public/generation-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAppStudiesRoute = AuthenticatedAppStudiesRouteImport.update({
+  id: '/app/studies',
+  path: '/app/studies',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminStudiesRoute =
+  AuthenticatedAdminStudiesRouteImport.update({
+    id: '/admin/studies',
+    path: '/admin/studies',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminProfilesRoute =
+  AuthenticatedAdminProfilesRouteImport.update({
+    id: '/admin/profiles',
+    path: '/admin/profiles',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminPresetsRoute =
+  AuthenticatedAdminPresetsRouteImport.update({
+    id: '/admin/presets',
+    path: '/admin/presets',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminMastersRoute =
+  AuthenticatedAdminMastersRouteImport.update({
+    id: '/admin/masters',
+    path: '/admin/masters',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminDashboardRoute =
+  AuthenticatedAdminDashboardRouteImport.update({
+    id: '/admin/dashboard',
+    path: '/admin/dashboard',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminCrmRoute = AuthenticatedAdminCrmRouteImport.update({
+  id: '/admin/crm',
+  path: '/admin/crm',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminCompaniesRoute =
+  AuthenticatedAdminCompaniesRouteImport.update({
+    id: '/admin/companies',
+    path: '/admin/companies',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const ApiPublicBrandPresetSlugRoute =
+  ApiPublicBrandPresetSlugRouteImport.update({
+    id: '/api/public/brand-preset/$slug',
+    path: '/api/public/brand-preset/$slug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAppStudiesNewRoute =
+  AuthenticatedAppStudiesNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAppStudiesRoute,
+  } as any)
+const AuthenticatedAppStudiesIdRoute =
+  AuthenticatedAppStudiesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAppStudiesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/admin/companies': typeof AuthenticatedAdminCompaniesRoute
+  '/admin/crm': typeof AuthenticatedAdminCrmRoute
+  '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
+  '/admin/masters': typeof AuthenticatedAdminMastersRoute
+  '/admin/presets': typeof AuthenticatedAdminPresetsRoute
+  '/admin/profiles': typeof AuthenticatedAdminProfilesRoute
+  '/admin/studies': typeof AuthenticatedAdminStudiesRoute
+  '/app/studies': typeof AuthenticatedAppStudiesRouteWithChildren
+  '/api/public/generation-webhook': typeof ApiPublicGenerationWebhookRoute
+  '/api/public/maps-config': typeof ApiPublicMapsConfigRoute
+  '/api/public/suggest-axes': typeof ApiPublicSuggestAxesRoute
+  '/api/wizard/submit': typeof ApiWizardSubmitRoute
+  '/app/studies/$id': typeof AuthenticatedAppStudiesIdRoute
+  '/app/studies/new': typeof AuthenticatedAppStudiesNewRoute
+  '/api/public/brand-preset/$slug': typeof ApiPublicBrandPresetSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/admin/companies': typeof AuthenticatedAdminCompaniesRoute
+  '/admin/crm': typeof AuthenticatedAdminCrmRoute
+  '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
+  '/admin/masters': typeof AuthenticatedAdminMastersRoute
+  '/admin/presets': typeof AuthenticatedAdminPresetsRoute
+  '/admin/profiles': typeof AuthenticatedAdminProfilesRoute
+  '/admin/studies': typeof AuthenticatedAdminStudiesRoute
+  '/app/studies': typeof AuthenticatedAppStudiesRouteWithChildren
+  '/api/public/generation-webhook': typeof ApiPublicGenerationWebhookRoute
+  '/api/public/maps-config': typeof ApiPublicMapsConfigRoute
+  '/api/public/suggest-axes': typeof ApiPublicSuggestAxesRoute
+  '/api/wizard/submit': typeof ApiWizardSubmitRoute
+  '/app/studies/$id': typeof AuthenticatedAppStudiesIdRoute
+  '/app/studies/new': typeof AuthenticatedAppStudiesNewRoute
+  '/api/public/brand-preset/$slug': typeof ApiPublicBrandPresetSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_authenticated/admin/companies': typeof AuthenticatedAdminCompaniesRoute
+  '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
+  '/_authenticated/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
+  '/_authenticated/admin/masters': typeof AuthenticatedAdminMastersRoute
+  '/_authenticated/admin/presets': typeof AuthenticatedAdminPresetsRoute
+  '/_authenticated/admin/profiles': typeof AuthenticatedAdminProfilesRoute
+  '/_authenticated/admin/studies': typeof AuthenticatedAdminStudiesRoute
+  '/_authenticated/app/studies': typeof AuthenticatedAppStudiesRouteWithChildren
+  '/api/public/generation-webhook': typeof ApiPublicGenerationWebhookRoute
+  '/api/public/maps-config': typeof ApiPublicMapsConfigRoute
+  '/api/public/suggest-axes': typeof ApiPublicSuggestAxesRoute
+  '/api/wizard/submit': typeof ApiWizardSubmitRoute
+  '/_authenticated/app/studies/$id': typeof AuthenticatedAppStudiesIdRoute
+  '/_authenticated/app/studies/new': typeof AuthenticatedAppStudiesNewRoute
+  '/api/public/brand-preset/$slug': typeof ApiPublicBrandPresetSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/admin/companies'
+    | '/admin/crm'
+    | '/admin/dashboard'
+    | '/admin/masters'
+    | '/admin/presets'
+    | '/admin/profiles'
+    | '/admin/studies'
+    | '/app/studies'
+    | '/api/public/generation-webhook'
+    | '/api/public/maps-config'
+    | '/api/public/suggest-axes'
+    | '/api/wizard/submit'
+    | '/app/studies/$id'
+    | '/app/studies/new'
+    | '/api/public/brand-preset/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/admin/companies'
+    | '/admin/crm'
+    | '/admin/dashboard'
+    | '/admin/masters'
+    | '/admin/presets'
+    | '/admin/profiles'
+    | '/admin/studies'
+    | '/app/studies'
+    | '/api/public/generation-webhook'
+    | '/api/public/maps-config'
+    | '/api/public/suggest-axes'
+    | '/api/wizard/submit'
+    | '/app/studies/$id'
+    | '/app/studies/new'
+    | '/api/public/brand-preset/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/admin/companies'
+    | '/_authenticated/admin/crm'
+    | '/_authenticated/admin/dashboard'
+    | '/_authenticated/admin/masters'
+    | '/_authenticated/admin/presets'
+    | '/_authenticated/admin/profiles'
+    | '/_authenticated/admin/studies'
+    | '/_authenticated/app/studies'
+    | '/api/public/generation-webhook'
+    | '/api/public/maps-config'
+    | '/api/public/suggest-axes'
+    | '/api/wizard/submit'
+    | '/_authenticated/app/studies/$id'
+    | '/_authenticated/app/studies/new'
+    | '/api/public/brand-preset/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  ApiPublicGenerationWebhookRoute: typeof ApiPublicGenerationWebhookRoute
+  ApiPublicMapsConfigRoute: typeof ApiPublicMapsConfigRoute
+  ApiPublicSuggestAxesRoute: typeof ApiPublicSuggestAxesRoute
+  ApiWizardSubmitRoute: typeof ApiWizardSubmitRoute
+  ApiPublicBrandPresetSlugRoute: typeof ApiPublicBrandPresetSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,12 +282,176 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/wizard/submit': {
+      id: '/api/wizard/submit'
+      path: '/api/wizard/submit'
+      fullPath: '/api/wizard/submit'
+      preLoaderRoute: typeof ApiWizardSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/suggest-axes': {
+      id: '/api/public/suggest-axes'
+      path: '/api/public/suggest-axes'
+      fullPath: '/api/public/suggest-axes'
+      preLoaderRoute: typeof ApiPublicSuggestAxesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/maps-config': {
+      id: '/api/public/maps-config'
+      path: '/api/public/maps-config'
+      fullPath: '/api/public/maps-config'
+      preLoaderRoute: typeof ApiPublicMapsConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/generation-webhook': {
+      id: '/api/public/generation-webhook'
+      path: '/api/public/generation-webhook'
+      fullPath: '/api/public/generation-webhook'
+      preLoaderRoute: typeof ApiPublicGenerationWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/studies': {
+      id: '/_authenticated/app/studies'
+      path: '/app/studies'
+      fullPath: '/app/studies'
+      preLoaderRoute: typeof AuthenticatedAppStudiesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/studies': {
+      id: '/_authenticated/admin/studies'
+      path: '/admin/studies'
+      fullPath: '/admin/studies'
+      preLoaderRoute: typeof AuthenticatedAdminStudiesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/profiles': {
+      id: '/_authenticated/admin/profiles'
+      path: '/admin/profiles'
+      fullPath: '/admin/profiles'
+      preLoaderRoute: typeof AuthenticatedAdminProfilesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/presets': {
+      id: '/_authenticated/admin/presets'
+      path: '/admin/presets'
+      fullPath: '/admin/presets'
+      preLoaderRoute: typeof AuthenticatedAdminPresetsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/masters': {
+      id: '/_authenticated/admin/masters'
+      path: '/admin/masters'
+      fullPath: '/admin/masters'
+      preLoaderRoute: typeof AuthenticatedAdminMastersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/dashboard': {
+      id: '/_authenticated/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/crm': {
+      id: '/_authenticated/admin/crm'
+      path: '/admin/crm'
+      fullPath: '/admin/crm'
+      preLoaderRoute: typeof AuthenticatedAdminCrmRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/companies': {
+      id: '/_authenticated/admin/companies'
+      path: '/admin/companies'
+      fullPath: '/admin/companies'
+      preLoaderRoute: typeof AuthenticatedAdminCompaniesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/public/brand-preset/$slug': {
+      id: '/api/public/brand-preset/$slug'
+      path: '/api/public/brand-preset/$slug'
+      fullPath: '/api/public/brand-preset/$slug'
+      preLoaderRoute: typeof ApiPublicBrandPresetSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/studies/new': {
+      id: '/_authenticated/app/studies/new'
+      path: '/new'
+      fullPath: '/app/studies/new'
+      preLoaderRoute: typeof AuthenticatedAppStudiesNewRouteImport
+      parentRoute: typeof AuthenticatedAppStudiesRoute
+    }
+    '/_authenticated/app/studies/$id': {
+      id: '/_authenticated/app/studies/$id'
+      path: '/$id'
+      fullPath: '/app/studies/$id'
+      preLoaderRoute: typeof AuthenticatedAppStudiesIdRouteImport
+      parentRoute: typeof AuthenticatedAppStudiesRoute
+    }
   }
 }
 
+interface AuthenticatedAppStudiesRouteChildren {
+  AuthenticatedAppStudiesIdRoute: typeof AuthenticatedAppStudiesIdRoute
+  AuthenticatedAppStudiesNewRoute: typeof AuthenticatedAppStudiesNewRoute
+}
+
+const AuthenticatedAppStudiesRouteChildren: AuthenticatedAppStudiesRouteChildren =
+  {
+    AuthenticatedAppStudiesIdRoute: AuthenticatedAppStudiesIdRoute,
+    AuthenticatedAppStudiesNewRoute: AuthenticatedAppStudiesNewRoute,
+  }
+
+const AuthenticatedAppStudiesRouteWithChildren =
+  AuthenticatedAppStudiesRoute._addFileChildren(
+    AuthenticatedAppStudiesRouteChildren,
+  )
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedAdminCompaniesRoute: typeof AuthenticatedAdminCompaniesRoute
+  AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
+  AuthenticatedAdminDashboardRoute: typeof AuthenticatedAdminDashboardRoute
+  AuthenticatedAdminMastersRoute: typeof AuthenticatedAdminMastersRoute
+  AuthenticatedAdminPresetsRoute: typeof AuthenticatedAdminPresetsRoute
+  AuthenticatedAdminProfilesRoute: typeof AuthenticatedAdminProfilesRoute
+  AuthenticatedAdminStudiesRoute: typeof AuthenticatedAdminStudiesRoute
+  AuthenticatedAppStudiesRoute: typeof AuthenticatedAppStudiesRouteWithChildren
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminCompaniesRoute: AuthenticatedAdminCompaniesRoute,
+  AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,
+  AuthenticatedAdminDashboardRoute: AuthenticatedAdminDashboardRoute,
+  AuthenticatedAdminMastersRoute: AuthenticatedAdminMastersRoute,
+  AuthenticatedAdminPresetsRoute: AuthenticatedAdminPresetsRoute,
+  AuthenticatedAdminProfilesRoute: AuthenticatedAdminProfilesRoute,
+  AuthenticatedAdminStudiesRoute: AuthenticatedAdminStudiesRoute,
+  AuthenticatedAppStudiesRoute: AuthenticatedAppStudiesRouteWithChildren,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
+  ApiPublicGenerationWebhookRoute: ApiPublicGenerationWebhookRoute,
+  ApiPublicMapsConfigRoute: ApiPublicMapsConfigRoute,
+  ApiPublicSuggestAxesRoute: ApiPublicSuggestAxesRoute,
+  ApiWizardSubmitRoute: ApiWizardSubmitRoute,
+  ApiPublicBrandPresetSlugRoute: ApiPublicBrandPresetSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
