@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      commune_types_master: {
+        Row: {
+          code: string
+          created_at: string
+          display_order: number
+          general_circle: string | null
+          id: string
+          is_active: boolean
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_order?: number
+          general_circle?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_order?: number
+          general_circle?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           actor_type: string
@@ -170,6 +203,83 @@ export type Database = {
           },
         ]
       }
+      company_study_presets: {
+        Row: {
+          analysis_axes: Json | null
+          brief_overrides: Json | null
+          company_id: string
+          created_at: string
+          default_activity_families: Json
+          default_commune_types: Json
+          default_kpis: Json
+          default_reference_years: Json
+          default_risks: Json
+          default_study_type: string | null
+          default_target_publics: Json
+          default_zone_focus: Json
+          guidance: Json
+          id: string
+          is_active: boolean
+          justification_note: string | null
+          preferred_tools: Json | null
+          study_category_code: string | null
+          study_subtype_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          analysis_axes?: Json | null
+          brief_overrides?: Json | null
+          company_id: string
+          created_at?: string
+          default_activity_families?: Json
+          default_commune_types?: Json
+          default_kpis?: Json
+          default_reference_years?: Json
+          default_risks?: Json
+          default_study_type?: string | null
+          default_target_publics?: Json
+          default_zone_focus?: Json
+          guidance?: Json
+          id?: string
+          is_active?: boolean
+          justification_note?: string | null
+          preferred_tools?: Json | null
+          study_category_code?: string | null
+          study_subtype_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          analysis_axes?: Json | null
+          brief_overrides?: Json | null
+          company_id?: string
+          created_at?: string
+          default_activity_families?: Json
+          default_commune_types?: Json
+          default_kpis?: Json
+          default_reference_years?: Json
+          default_risks?: Json
+          default_study_type?: string | null
+          default_target_publics?: Json
+          default_zone_focus?: Json
+          guidance?: Json
+          id?: string
+          is_active?: boolean
+          justification_note?: string | null
+          preferred_tools?: Json | null
+          study_category_code?: string | null
+          study_subtype_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_study_presets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_target_publics: {
         Row: {
           company_id: string
@@ -208,6 +318,106 @@ export type Database = {
           },
         ]
       }
+      internal_crm_logs: {
+        Row: {
+          category: string
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          resolved_at: string | null
+          severity: string
+          status: string
+          study_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          study_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          study_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_crm_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_crm_logs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_crm_logs_study_id_fkey"
+            columns: ["study_id"]
+            isOneToOne: false
+            referencedRelation: "studies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kpi_master: {
+        Row: {
+          code: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          kpi_group: string | null
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          kpi_group?: string | null
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          kpi_group?: string | null
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -231,6 +441,410 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      risks_master: {
+        Row: {
+          code: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sap_activities_master: {
+        Row: {
+          code: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      service_modes_master: {
+        Row: {
+          code: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      studies: {
+        Row: {
+          city_name: string | null
+          commune_types: Json
+          company_id: string | null
+          competition_kpis: Json
+          country_code: string | null
+          created_at: string
+          created_by: string | null
+          deliverable_format: string | null
+          demographic_segments: Json
+          generation_completed_at: string | null
+          generation_error_message: string | null
+          generation_started_at: string | null
+          generation_status: string
+          hr_kpis: Json
+          id: string
+          included_activity_families: Json
+          main_target_public: Json
+          market_kpis: Json
+          palette_key: string | null
+          parent_study_id: string | null
+          postal_code: string | null
+          reference_years: Json
+          risks: Json
+          road_axes: Json
+          status: string
+          study_category_code: string | null
+          study_objective: string | null
+          study_subtype_code: string | null
+          study_type: string | null
+          synthesis_kpis: Json
+          title: string | null
+          transport_kpis: Json
+          updated_at: string
+          user_id: string
+          version_number: number
+          zone_focus: Json
+        }
+        Insert: {
+          city_name?: string | null
+          commune_types?: Json
+          company_id?: string | null
+          competition_kpis?: Json
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          deliverable_format?: string | null
+          demographic_segments?: Json
+          generation_completed_at?: string | null
+          generation_error_message?: string | null
+          generation_started_at?: string | null
+          generation_status?: string
+          hr_kpis?: Json
+          id?: string
+          included_activity_families?: Json
+          main_target_public?: Json
+          market_kpis?: Json
+          palette_key?: string | null
+          parent_study_id?: string | null
+          postal_code?: string | null
+          reference_years?: Json
+          risks?: Json
+          road_axes?: Json
+          status?: string
+          study_category_code?: string | null
+          study_objective?: string | null
+          study_subtype_code?: string | null
+          study_type?: string | null
+          synthesis_kpis?: Json
+          title?: string | null
+          transport_kpis?: Json
+          updated_at?: string
+          user_id: string
+          version_number?: number
+          zone_focus?: Json
+        }
+        Update: {
+          city_name?: string | null
+          commune_types?: Json
+          company_id?: string | null
+          competition_kpis?: Json
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          deliverable_format?: string | null
+          demographic_segments?: Json
+          generation_completed_at?: string | null
+          generation_error_message?: string | null
+          generation_started_at?: string | null
+          generation_status?: string
+          hr_kpis?: Json
+          id?: string
+          included_activity_families?: Json
+          main_target_public?: Json
+          market_kpis?: Json
+          palette_key?: string | null
+          parent_study_id?: string | null
+          postal_code?: string | null
+          reference_years?: Json
+          risks?: Json
+          road_axes?: Json
+          status?: string
+          study_category_code?: string | null
+          study_objective?: string | null
+          study_subtype_code?: string | null
+          study_type?: string | null
+          synthesis_kpis?: Json
+          title?: string | null
+          transport_kpis?: Json
+          updated_at?: string
+          user_id?: string
+          version_number?: number
+          zone_focus?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studies_parent_study_id_fkey"
+            columns: ["parent_study_id"]
+            isOneToOne: false
+            referencedRelation: "studies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_categories_master: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          display_name: string
+          icon_emoji: string | null
+          id: string
+          is_active: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          display_name: string
+          icon_emoji?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          icon_emoji?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      study_subtypes_master: {
+        Row: {
+          backend_prompt_id: string | null
+          category_code: string
+          code: string
+          created_at: string
+          description: string | null
+          display_name: string
+          id: string
+          is_active: boolean
+          is_recommended: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          backend_prompt_id?: string | null
+          category_code: string
+          code: string
+          created_at?: string
+          description?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean
+          is_recommended?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          backend_prompt_id?: string | null
+          category_code?: string
+          code?: string
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          is_recommended?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      study_types_master: {
+        Row: {
+          code: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      target_publics_master: {
+        Row: {
+          code: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      territory_modes_master: {
+        Row: {
+          code: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string
           updated_at?: string
         }
         Relationships: []
@@ -281,6 +895,68 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zone_focus_master: {
+        Row: {
+          code: string
+          created_at: string
+          display_order: number
+          general_circle: string | null
+          id: string
+          is_active: boolean
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_order?: number
+          general_circle?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_order?: number
+          general_circle?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -289,7 +965,7 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -416,6 +1092,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
