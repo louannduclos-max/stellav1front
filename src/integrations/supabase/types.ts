@@ -717,6 +717,50 @@ export type Database = {
         }
         Relationships: []
       }
+      study_deliverables: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          generated_at: string
+          id: string
+          mime_type: string | null
+          study_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          generated_at?: string
+          id?: string
+          mime_type?: string | null
+          study_id: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          generated_at?: string
+          id?: string
+          mime_type?: string | null
+          study_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_deliverables_study_id_fkey"
+            columns: ["study_id"]
+            isOneToOne: false
+            referencedRelation: "studies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       study_subtypes_master: {
         Row: {
           backend_prompt_id: string | null
