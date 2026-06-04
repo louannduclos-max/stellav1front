@@ -14,6 +14,200 @@ export type Database = {
   }
   public: {
     Tables: {
+      companies: {
+        Row: {
+          actor_type: string
+          created_at: string
+          created_by: string | null
+          default_language: string
+          display_name: string
+          group_name: string | null
+          id: string
+          internal_notes: string | null
+          long_description: string | null
+          name: string
+          positioning: string | null
+          short_description: string | null
+          slug: string
+          status: string
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          actor_type?: string
+          created_at?: string
+          created_by?: string | null
+          default_language?: string
+          display_name: string
+          group_name?: string | null
+          id?: string
+          internal_notes?: string | null
+          long_description?: string | null
+          name: string
+          positioning?: string | null
+          short_description?: string | null
+          slug: string
+          status?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          actor_type?: string
+          created_at?: string
+          created_by?: string | null
+          default_language?: string
+          display_name?: string
+          group_name?: string | null
+          id?: string
+          internal_notes?: string | null
+          long_description?: string | null
+          name?: string
+          positioning?: string | null
+          short_description?: string | null
+          slug?: string
+          status?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_activity_families: {
+        Row: {
+          activity_code: string
+          activity_label: string
+          company_id: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          activity_code: string
+          activity_label: string
+          company_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          activity_code?: string
+          activity_label?: string
+          company_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_activity_families_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_branding: {
+        Row: {
+          accent_color: string | null
+          background_color: string | null
+          brand_style: string | null
+          company_id: string
+          created_at: string
+          id: string
+          logo_primary_url: string | null
+          primary_color: string
+          secondary_color: string | null
+          text_color: string | null
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          background_color?: string | null
+          brand_style?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          logo_primary_url?: string | null
+          primary_color?: string
+          secondary_color?: string | null
+          text_color?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          background_color?: string | null
+          brand_style?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          logo_primary_url?: string | null
+          primary_color?: string
+          secondary_color?: string | null
+          text_color?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_branding_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_target_publics: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_default: boolean
+          public_code: string
+          public_label: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          public_code: string
+          public_label: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          public_code?: string
+          public_label?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_target_publics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -40,6 +234,52 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_company_permissions: {
+        Row: {
+          company_id: string
+          created_at: string
+          granted_by: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_company_permissions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_company_permissions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_company_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
