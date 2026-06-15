@@ -108,7 +108,10 @@ function useStellaManifest({ studyId, brandSlug, baseUrl = DEFAULT_BASE_URL }: S
     setFetchUrl(url);
     fetch(url, {
       signal: controller.signal,
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        "ngrok-skip-browser-warning": "true",
+      },
     })
       .then(async (response) => {
         if (!response.ok) throw new Error(`Stella manifest HTTP ${response.status}`);
