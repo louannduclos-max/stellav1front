@@ -249,8 +249,11 @@ export default function StellaManifestPage(props: StellaManifestPageProps) {
 
   const firstSlide = slides[0];
   const firstResolved = manifest && firstSlide ? resolveComponent(manifest, firstSlide) : null;
-  const firstComponentName =
-    (firstResolved && (firstResolved.displayName || firstResolved.name)) || "(none)";
+  const firstComponentName = firstResolved
+    ? ((firstResolved as { displayName?: string; name?: string }).displayName ||
+        (firstResolved as { displayName?: string; name?: string }).name ||
+        "(anonymous)")
+    : "(none)";
 
   const debugBox = (
     <pre
