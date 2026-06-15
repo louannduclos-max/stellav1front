@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StudyIdRouteImport } from './routes/study.$id'
 import { Route as ApiWizardSubmitRouteImport } from './routes/api/wizard.submit'
 import { Route as ApiPublicSuggestAxesRouteImport } from './routes/api/public/suggest-axes'
 import { Route as ApiPublicMapsConfigRouteImport } from './routes/api/public/maps-config'
@@ -40,6 +41,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudyIdRoute = StudyIdRouteImport.update({
+  id: '/study/$id',
+  path: '/study/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWizardSubmitRoute = ApiWizardSubmitRouteImport.update({
@@ -131,6 +137,7 @@ const AuthenticatedAppStudiesIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/study/$id': typeof StudyIdRoute
   '/admin/companies': typeof AuthenticatedAdminCompaniesRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/study/$id': typeof StudyIdRoute
   '/admin/companies': typeof AuthenticatedAdminCompaniesRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/study/$id': typeof StudyIdRoute
   '/_authenticated/admin/companies': typeof AuthenticatedAdminCompaniesRoute
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/_authenticated/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
@@ -192,6 +201,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/study/$id'
     | '/admin/companies'
     | '/admin/crm'
     | '/admin/dashboard'
@@ -211,6 +221,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/study/$id'
     | '/admin/companies'
     | '/admin/crm'
     | '/admin/dashboard'
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/login'
+    | '/study/$id'
     | '/_authenticated/admin/companies'
     | '/_authenticated/admin/crm'
     | '/_authenticated/admin/dashboard'
@@ -252,6 +264,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  StudyIdRoute: typeof StudyIdRoute
   ApiPublicGenerationWebhookRoute: typeof ApiPublicGenerationWebhookRoute
   ApiPublicMapsConfigRoute: typeof ApiPublicMapsConfigRoute
   ApiPublicSuggestAxesRoute: typeof ApiPublicSuggestAxesRoute
@@ -280,6 +293,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/study/$id': {
+      id: '/study/$id'
+      path: '/study/$id'
+      fullPath: '/study/$id'
+      preLoaderRoute: typeof StudyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/wizard/submit': {
@@ -436,6 +456,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
+  StudyIdRoute: StudyIdRoute,
   ApiPublicGenerationWebhookRoute: ApiPublicGenerationWebhookRoute,
   ApiPublicMapsConfigRoute: ApiPublicMapsConfigRoute,
   ApiPublicSuggestAxesRoute: ApiPublicSuggestAxesRoute,
