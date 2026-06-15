@@ -94,6 +94,7 @@ function useStellaManifest({ studyId, brandSlug, baseUrl = DEFAULT_BASE_URL }: S
   const [manifest, setManifest] = useState<StellaFrontendManifest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fetchUrl, setFetchUrl] = useState<string>("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -103,7 +104,9 @@ function useStellaManifest({ studyId, brandSlug, baseUrl = DEFAULT_BASE_URL }: S
     setLoading(true);
     setError(null);
 
-    fetch(`${baseUrl}/integration/study/${studyId}/frontend-manifest?${qs.toString()}`, {
+    const url = `${baseUrl}/integration/study/${studyId}/frontend-manifest?${qs.toString()}`;
+    setFetchUrl(url);
+    fetch(url, {
       signal: controller.signal,
       headers: { Accept: "application/json" },
     })
@@ -123,7 +126,7 @@ function useStellaManifest({ studyId, brandSlug, baseUrl = DEFAULT_BASE_URL }: S
     return () => controller.abort();
   }, [studyId, brandSlug, baseUrl]);
 
-  return { manifest, loading, error };
+  return { manifest, loading, error, fetchUrl };
 }
 
 function GenericSlide({ manifest, slide }: SlideRendererProps) {
@@ -241,18 +244,65 @@ function resolveComponent(manifest: StellaFrontendManifest, slide: StellaFronten
 }
 
 export default function StellaManifestPage(props: StellaManifestPageProps) {
-  const { manifest, loading, error } = useStellaManifest(props);
+  const { manifest, loading, error, fetchUrl } = useStellaManifest(props);
   const slides = useMemo(() => manifest?.renderer.playlist.slides || [], [manifest]);
 
+  const firstSlide = slides[0];
+  const firstResolved = manifest && firstSlide ? resolveComponent(manifest, firstSlide) : null;
+  const firstComponentName =
+    (firstResolved && (firstResolved.displayName || firstResolved.name)) || "(none)";
+
+  const debugBox = (
+    <pre
+      style={{
+        margin: 0,
+        padding: 16,
+        background: "#111827",
+        color: "#E5E7EB",
+        borderRadius: 12,
+        fontSize: 12,
+        lineHeight: 1.5,
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-all",
+        fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+      }}
+    >
+{`[Stella debug]
+studyId   : ${props.studyId}
+brandSlug : ${props.brandSlug ?? "(none)"}
+baseUrl   : ${props.baseUrl ?? DEFAULT_BASE_URL}
+fetchUrl  : ${fetchUrl}
+loading   : ${loading}
+error     : ${error ?? "null"}
+slides    : ${slides.length}
+first.slide_id : ${firstSlide?.slide_id ?? "(none)"}
+first.component (manifest) : ${firstSlide?.component ?? "(none)"}
+first.resolved frontend component : ${firstComponentName}`}
+    </pre>
+  );
+
   if (loading) {
-    return <div style={{ padding: 32, fontFamily: "Arial, sans-serif" }}>Chargement du manifest Stella…</div>;
+    return (
+      <main style={{ padding: 24, display: "grid", gap: 16 }}>
+        {debugBox}
+        <div style={{ padding: 32, fontFamily: "Arial, sans-serif" }}>Chargement du manifest Stella…</div>
+      </main>
+    );
   }
   if (error || !manifest) {
-    return <div style={{ padding: 32, color: "#B00020", fontFamily: "Arial, sans-serif" }}>Erreur manifest Stella: {error || "Manifest indisponible"}</div>;
+    return (
+      <main style={{ padding: 24, display: "grid", gap: 16 }}>
+        {debugBox}
+        <div style={{ padding: 32, color: "#B00020", fontFamily: "Arial, sans-serif" }}>
+          Erreur manifest Stella: {error || "Manifest indisponible"}
+        </div>
+      </main>
+    );
   }
 
   return (
     <main style={{ padding: 24, background: "linear-gradient(180deg, #F7F9FC 0%, #EEF3FA 100%)", display: "grid", gap: 28 }}>
+      {debugBox}
       {slides
         .slice()
         .sort((a, b) => a.slide_index - b.slide_index)
@@ -260,6 +310,11 @@ export default function StellaManifestPage(props: StellaManifestPageProps) {
           const Component = resolveComponent(manifest, slide);
           return <Component key={slide.slide_id} manifest={manifest} slide={slide} />;
         })}
+      {slides.length === 0 && (
+        <div style={{ padding: 32, color: "#B00020", fontFamily: "Arial, sans-serif" }}>
+          Le manifest est arrivé mais ne contient aucune slide (playlist.slides vide).
+        </div>
+      )}
     </main>
   );
 }
