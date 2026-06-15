@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StellaVisualRouteImport } from './routes/stella-visual'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -29,6 +30,11 @@ import { Route as ApiPublicBrandPresetSlugRouteImport } from './routes/api/publi
 import { Route as AuthenticatedAppStudiesNewRouteImport } from './routes/_authenticated/app.studies.new'
 import { Route as AuthenticatedAppStudiesIdRouteImport } from './routes/_authenticated/app.studies.$id'
 
+const StellaVisualRoute = StellaVisualRouteImport.update({
+  id: '/stella-visual',
+  path: '/stella-visual',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -137,6 +143,7 @@ const AuthenticatedAppStudiesIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/stella-visual': typeof StellaVisualRoute
   '/study/$id': typeof StudyIdRoute
   '/admin/companies': typeof AuthenticatedAdminCompaniesRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/stella-visual': typeof StellaVisualRoute
   '/study/$id': typeof StudyIdRoute
   '/admin/companies': typeof AuthenticatedAdminCompaniesRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/stella-visual': typeof StellaVisualRoute
   '/study/$id': typeof StudyIdRoute
   '/_authenticated/admin/companies': typeof AuthenticatedAdminCompaniesRoute
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/stella-visual'
     | '/study/$id'
     | '/admin/companies'
     | '/admin/crm'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/stella-visual'
     | '/study/$id'
     | '/admin/companies'
     | '/admin/crm'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/login'
+    | '/stella-visual'
     | '/study/$id'
     | '/_authenticated/admin/companies'
     | '/_authenticated/admin/crm'
@@ -264,6 +276,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  StellaVisualRoute: typeof StellaVisualRoute
   StudyIdRoute: typeof StudyIdRoute
   ApiPublicGenerationWebhookRoute: typeof ApiPublicGenerationWebhookRoute
   ApiPublicMapsConfigRoute: typeof ApiPublicMapsConfigRoute
@@ -274,6 +287,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/stella-visual': {
+      id: '/stella-visual'
+      path: '/stella-visual'
+      fullPath: '/stella-visual'
+      preLoaderRoute: typeof StellaVisualRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -456,6 +476,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
+  StellaVisualRoute: StellaVisualRoute,
   StudyIdRoute: StudyIdRoute,
   ApiPublicGenerationWebhookRoute: ApiPublicGenerationWebhookRoute,
   ApiPublicMapsConfigRoute: ApiPublicMapsConfigRoute,
