@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import StellaManifestPage from "@/components/stella/StellaManifestPage";
+import StellaVisualRoute from "@/components/stella/StellaVisualRoute";
 
 type Search = {
   studyId?: string;
@@ -23,13 +23,5 @@ export const Route = createFileRoute("/stella-visual")({
 
 function StellaVisualPage() {
   const { studyId, brand, baseUrl } = Route.useSearch();
-  return (
-    <div style={{ minHeight: "100vh", background: "#EEF3FA" }} data-testid="stella-visual-route">
-      <StellaManifestPage
-        studyId={studyId ?? "std_demo_replace_me"}
-        brandSlug={brand ?? "o2"}
-        baseUrl={baseUrl ?? (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) ?? "http://127.0.0.1:8000"}
-      />
-    </div>
-  );
+  return <StellaVisualRoute studyId={studyId} brand={brand} baseUrl={baseUrl} />;
 }
