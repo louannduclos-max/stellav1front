@@ -13,6 +13,10 @@ export type StellaFrontendManifest = {
     font_family?: string | null;
     palette?: Record<string, string>;
   };
+  brand_profile?: {
+    priority_kpis?: string[];
+    [key: string]: unknown;
+  } | null;
   renderer: {
     component_map: {
       items: Array<{
@@ -83,6 +87,107 @@ const titleStyle: React.CSSProperties = { fontSize: 34, lineHeight: 1.05, fontWe
 const metaStyle: React.CSSProperties = { fontSize: 13, opacity: 0.72, display: "flex", flexWrap: "wrap", gap: 10 };
 const listStyle: React.CSSProperties = { margin: 0, paddingLeft: 18, fontSize: 15, lineHeight: 1.45 };
 
+type AnyRec = Record<string, unknown>;
+
+function pickString(rec: AnyRec | undefined, ...keys: string[]): string | undefined {
+  if (!rec) return undefined;
+  for (const k of keys) {
+    const v = rec[k];
+    if (typeof v === "string" && v.length) return v;
+    if (typeof v === "number") return String(v);
+  }
+  return undefined;
+}
+
+function pickNumberLike(rec: AnyRec | undefined, ...keys: string[]): string | undefined {
+  if (!rec) return undefined;
+  for (const k of keys) {
+    const v = rec[k];
+    if (v === null || v === undefined) continue;
+    if (typeof v === "number") return Number.isFinite(v) ? String(v) : undefined;
+    if (typeof v === "string" && v.length) return v;
+  }
+  return undefined;
+}
+
+type ResolvedKpi = {
+  id: string;
+  label: string;
+  value: string;
+  unit?: string;
+  delta?: string;
+  source?: string;
+};
+
+function resolveKpi(manifest: StellaFrontendManifest, id: string): ResolvedKpi | null {
+  const byId = manifest.study_data?.metrics?.by_id || {};
+  const items = manifest.study_data?.metrics?.items || [];
+  const raw =
+    (byId[id] as AnyRec | undefined) ||
+    (items.find((m) => (m as AnyRec).metric_id === id || (m as AnyRec).id === id) as AnyRec | undefined);
+  if (!raw) {
+    return { id, label: id, value: "—" };
+  }
+  const label =
+    pickString(raw, "label", "name", "title", "metric_label", "display_name") || id;
+  const value =
+    pickNumberLike(raw, "value", "display_value", "current_value", "score", "amount") ?? "—";
+  const unit = pickString(raw, "unit", "unit_label", "suffix");
+  const delta = pickNumberLike(raw, "delta", "trend", "variation", "change");
+  const source = pickString(raw, "source", "provider", "source_id");
+  return { id, label, value, unit, delta, source };
+}
+
+function resolveHeroKpiIds(
+  manifest: StellaFrontendManifest,
+  slide?: StellaFrontendManifest["renderer"]["playlist"]["slides"][number],
+  max = 6,
+): string[] {
+  const ordered: string[] = [];
+  const push = (id?: string | null) => {
+    if (!id) return;
+    if (ordered.includes(id)) return;
+    ordered.push(id);
+  };
+  (slide?.expected_kpis || []).forEach(push);
+  (manifest.brand_profile?.priority_kpis || []).forEach(push);
+  const byId = manifest.study_data?.metrics?.by_id || {};
+  Object.keys(byId).forEach(push);
+  (manifest.study_data?.metrics?.items || []).forEach((m) => {
+    push(pickString(m as AnyRec, "metric_id", "id"));
+  });
+  return ordered.slice(0, max);
+}
+
+function KpiCard({ kpi, accent }: { kpi: ResolvedKpi; accent?: boolean }) {
+  return (
+    <div
+      style={{
+        borderRadius: 18,
+        padding: "16px 18px",
+        background: accent ? "var(--stella-primary, #0066CC)" : "#FFFFFF",
+        color: accent ? "#FFFFFF" : "inherit",
+        boxShadow: "0 12px 24px rgba(0,0,0,0.06)",
+        display: "grid",
+        gap: 6,
+        minWidth: 0,
+      }}
+    >
+      <div style={{ fontSize: 11, opacity: 0.8, textTransform: "uppercase", letterSpacing: 0.6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {kpi.label}
+      </div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+        <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1 }}>{kpi.value}</div>
+        {kpi.unit ? <div style={{ fontSize: 14, opacity: 0.85 }}>{kpi.unit}</div> : null}
+      </div>
+      {kpi.delta ? (
+        <div style={{ fontSize: 12, opacity: 0.85 }}>Δ {kpi.delta}</div>
+      ) : null}
+      <div style={{ fontSize: 10, opacity: 0.55 }}>{kpi.id}{kpi.source ? ` · ${kpi.source}` : ""}</div>
+    </div>
+  );
+}
+
 function applyCssVariables(variables: Record<string, string>) {
   if (typeof document === "undefined") return;
   Object.entries(variables).forEach(([key, value]) => {
@@ -136,6 +241,8 @@ function GenericSlide({ manifest, slide }: SlideRendererProps) {
   const city = manifest.study_data?.study?.geo_scope?.city || "Ville";
   const country = manifest.study_data?.study?.geo_scope?.country || "";
   const verdict = manifest.study_data?.study?.verdict || "PENDING";
+  const kpiIds = resolveHeroKpiIds(manifest, slide, 6);
+  const kpis = kpiIds.map((id) => resolveKpi(manifest, id)).filter(Boolean) as ResolvedKpi[];
 
   return (
     <section
@@ -166,20 +273,28 @@ function GenericSlide({ manifest, slide }: SlideRendererProps) {
         <span>{slide.visual_anchor}</span>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 20, minHeight: 0 }}>
-        <div style={{ borderRadius: 18, background: "rgba(0,0,0,0.03)", padding: 18 }}>
-          <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 18 }}>Expected KPI</h3>
-          <ul style={listStyle}>
-            {slide.expected_kpis.length ? slide.expected_kpis.map((kpi) => <li key={kpi}>{kpi}</li>) : <li>Aucun KPI imposé</li>}
-          </ul>
+      {kpis.length ? (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${Math.min(kpis.length, 3)}, minmax(0, 1fr))`,
+            gap: 14,
+            minHeight: 0,
+          }}
+        >
+          {kpis.map((kpi) => <KpiCard key={kpi.id} kpi={kpi} />)}
         </div>
-        <div style={{ borderRadius: 18, background: "rgba(0,0,0,0.03)", padding: 18 }}>
-          <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 18 }}>Slots</h3>
-          <ul style={listStyle}>
-            {slide.slot_keys.map((slot) => <li key={slot}>{slot}</li>)}
-          </ul>
+      ) : (
+        <div style={{ borderRadius: 18, background: "rgba(0,0,0,0.03)", padding: 18, fontSize: 14, opacity: 0.7 }}>
+          Aucun KPI résolvable pour cette slide ({slide.expected_kpis.join(", ") || "expected_kpis vide"}).
         </div>
-      </div>
+      )}
+
+      {slide.slot_keys.length ? (
+        <div style={{ fontSize: 11, opacity: 0.55 }}>
+          Slots : {slide.slot_keys.join(" · ")}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -188,8 +303,30 @@ function CoverHeroStatsSlide({ manifest, slide }: SlideRendererProps) {
   const study = manifest.study_data?.study;
   const brand = study?.business_context?.brand_name || manifest.resolved_brand_slug || manifest.theme.brand_slug || "Brand";
   const city = study?.geo_scope?.city || "Ville";
+  const country = study?.geo_scope?.country || "";
   const verdict = study?.verdict || "PENDING";
-  const scores = manifest.study_data?.scores?.items || [];
+  const scoresItems = manifest.study_data?.scores?.items || [];
+  const globalScore = (() => {
+    const byId = manifest.study_data?.scores?.by_id || {};
+    const candidate =
+      (byId["global"] as AnyRec | undefined) ||
+      (byId["overall"] as AnyRec | undefined) ||
+      (scoresItems.find((s) => {
+        const id = pickString(s as AnyRec, "score_id", "id", "key") || "";
+        return /global|overall|total/i.test(id);
+      }) as AnyRec | undefined) ||
+      (scoresItems[0] as AnyRec | undefined);
+    if (!candidate) return null;
+    return {
+      label: pickString(candidate, "label", "name") || "Score global",
+      value: pickNumberLike(candidate, "value", "score", "display_value") || "—",
+      unit: pickString(candidate, "unit"),
+    };
+  })();
+
+  const heroKpiIds = resolveHeroKpiIds(manifest, slide, 6);
+  const heroKpis = heroKpiIds.map((id) => resolveKpi(manifest, id)).filter(Boolean) as ResolvedKpi[];
+  const gridCols = heroKpis.length >= 6 ? 3 : heroKpis.length >= 4 ? 2 : Math.max(1, heroKpis.length);
 
   return (
     <section
@@ -202,33 +339,58 @@ function CoverHeroStatsSlide({ manifest, slide }: SlideRendererProps) {
         background: "linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(245,248,255,1) 100%)",
       }}
     >
-      <div style={{ display: "grid", alignContent: "space-between", gap: 18 }}>
+      <div style={{ display: "grid", alignContent: "space-between", gap: 18, minWidth: 0 }}>
         <div>
-          <p style={{ margin: 0, fontSize: 12, letterSpacing: 1.6, textTransform: "uppercase", color: "var(--stella-primary, #0066CC)" }}>{brand}</p>
-          <h1 style={{ margin: "12px 0 10px 0", fontSize: 58, lineHeight: 0.95, fontWeight: 900 }}>{city}</h1>
-          <p style={{ margin: 0, fontSize: 18, maxWidth: 640 }}>
-            Intégration Lovable pilotée par le manifest frontend Stella. Ordre des slides, thème et composants résolus depuis une seule requête.
+          <p style={{ margin: 0, fontSize: 12, letterSpacing: 1.6, textTransform: "uppercase", color: "var(--stella-primary, #0066CC)" }}>
+            {brand}{country ? ` · ${country}` : ""}
           </p>
+          <h1 style={{ margin: "10px 0 6px 0", fontSize: 48, lineHeight: 0.98, fontWeight: 900 }}>{city}</h1>
+          <p style={{ margin: 0, fontSize: 14, opacity: 0.75 }}>{slide.title}</p>
         </div>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          {scores.slice(0, 4).map((score, index) => (
-            <div
-              key={String((score as Record<string, unknown>).score_id || index)}
-              style={{ minWidth: 140, borderRadius: 18, padding: "16px 18px", background: "#FFFFFF", boxShadow: "0 12px 24px rgba(0,0,0,0.06)" }}
-            >
-              <div style={{ fontSize: 12, opacity: 0.72 }}>{String((score as Record<string, unknown>).label || (score as Record<string, unknown>).name || `Score ${index + 1}`)}</div>
-              <div style={{ marginTop: 8, fontSize: 30, fontWeight: 800 }}>{String((score as Record<string, unknown>).value ?? "-")}</div>
-            </div>
-          ))}
-        </div>
+        {heroKpis.length ? (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
+              gap: 12,
+            }}
+          >
+            {heroKpis.map((kpi, i) => <KpiCard key={kpi.id} kpi={kpi} accent={i === 0} />)}
+          </div>
+        ) : (
+          <div style={{ padding: 16, background: "rgba(0,0,0,0.04)", borderRadius: 14, fontSize: 13, opacity: 0.7 }}>
+            Aucun KPI hero disponible (metrics.by_id et brand_profile.priority_kpis vides).
+          </div>
+        )}
       </div>
 
-      <aside style={{ borderRadius: 28, background: "var(--stella-primary, #0066CC)", color: "#FFFFFF", display: "grid", placeItems: "center", padding: 24, textAlign: "center" }}>
-        <div>
-          <div style={{ fontSize: 14, letterSpacing: 1.4, textTransform: "uppercase", opacity: 0.85 }}>Verdict</div>
-          <div style={{ fontSize: 44, fontWeight: 900, lineHeight: 1.0, margin: "10px 0 16px 0" }}>{verdict}</div>
-          <div style={{ fontSize: 14, opacity: 0.9 }}>Slide {slide.slide_index} / {manifest.renderer.playlist.slides.length}</div>
+      <aside
+        style={{
+          borderRadius: 24,
+          background: "rgba(0,0,0,0.04)",
+          display: "grid",
+          gridTemplateRows: "auto auto 1fr",
+          padding: 18,
+          gap: 12,
+          minWidth: 0,
+        }}
+      >
+        <div style={{ borderRadius: 16, padding: 14, background: "#FFFFFF", boxShadow: "0 8px 18px rgba(0,0,0,0.05)" }}>
+          <div style={{ fontSize: 11, opacity: 0.7, textTransform: "uppercase", letterSpacing: 1 }}>Verdict</div>
+          <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>{verdict}</div>
+        </div>
+        {globalScore ? (
+          <div style={{ borderRadius: 16, padding: 14, background: "#FFFFFF", boxShadow: "0 8px 18px rgba(0,0,0,0.05)" }}>
+            <div style={{ fontSize: 11, opacity: 0.7, textTransform: "uppercase", letterSpacing: 1 }}>{globalScore.label}</div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
+              <div style={{ fontSize: 26, fontWeight: 800 }}>{globalScore.value}</div>
+              {globalScore.unit ? <div style={{ fontSize: 13, opacity: 0.7 }}>{globalScore.unit}</div> : null}
+            </div>
+          </div>
+        ) : null}
+        <div style={{ alignSelf: "end", fontSize: 11, opacity: 0.55 }}>
+          Slide {slide.slide_index} / {manifest.renderer.playlist.slides.length}
         </div>
       </aside>
     </section>
