@@ -5,6 +5,7 @@ type Search = {
   studyId?: string;
   brand?: string;
   baseUrl?: string;
+  debug?: string;
 };
 
 export const Route = createFileRoute("/stella-visual")({
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/stella-visual")({
     studyId: typeof search.studyId === "string" ? search.studyId : undefined,
     brand: typeof search.brand === "string" ? search.brand : undefined,
     baseUrl: typeof search.baseUrl === "string" ? search.baseUrl : undefined,
+    debug: typeof search.debug === "string" ? search.debug : undefined,
   }),
   component: StellaVisualPage,
   errorComponent: ({ error }) => (
@@ -22,6 +24,5 @@ export const Route = createFileRoute("/stella-visual")({
 });
 
 function StellaVisualPage() {
-  const { studyId, brand, baseUrl } = Route.useSearch();
-  return <StellaVisualRoute studyId={studyId} brand={brand} baseUrl={baseUrl} />;
+  return <StellaVisualRoute />;
 }
