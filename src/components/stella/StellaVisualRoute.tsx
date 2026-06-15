@@ -1,20 +1,27 @@
-import React from 'react';
-import StellaManifestPage from '@/components/stella/StellaManifestPage';
+import React from "react";
+import StellaSlidesViewport from "./StellaSlidesViewport";
+import "./assets/chrome.css";
 
-type StellaVisualRouteProps = {
-  studyId?: string;
-  brand?: string;
-  baseUrl?: string;
-};
+function getQueryParam(name: string, fallback = "") {
+  if (typeof window === "undefined") return fallback;
+  return new URLSearchParams(window.location.search).get(name) || fallback;
+}
 
-export default function StellaVisualRoute({ studyId, brand, baseUrl }: StellaVisualRouteProps) {
-  return (
-    <div style={{ minHeight: '100vh', background: '#EEF3FA' }} data-testid="stella-visual-route">
-      <StellaManifestPage
-        studyId={studyId ?? 'std_26c320f6171'}
-        brandSlug={brand ?? 'o2'}
-        baseUrl={baseUrl ?? (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) ?? 'http://127.0.0.1:8000'}
-      />
-    </div>
+export default function StellaVisualRoute() {
+  const studyId = getQueryParam("studyId", "");
+  const baseUrl = getQueryParam(
+    "baseUrl",
+    (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) || "http://127.0.0.1:8000",
   );
+  const debug = getQueryParam("debug", "0") === "1";
+
+  if (!studyId) {
+    return (
+      <div className="stella-5-0-viewport">
+        <p className="stella-5-0-error">Paramètre studyId manquant dans l'URL.</p>
+      </div>
+    );
+  }
+
+  return <StellaSlidesViewport studyId={studyId} baseUrl={baseUrl} debug={debug} />;
 }
