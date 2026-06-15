@@ -1,46 +1,60 @@
-# Intégration du `lovable-pack` Stella
+## Objectif
 
-Objectif : récupérer le pack JSON depuis l'API Stella (`/integration/study/{id}/lovable-pack`), injecter ses variables CSS dans `:root`, afficher la liste des KPI, et afficher le HTML de prévisualisation dans une iframe — le tout accessible via une page `/study/$id` ET via un hook et des composants réutilisables ailleurs.
+Permettre de changer dynamiquement le thème de marque Stella (rouge bordeaux Shiva, bleu ES Interdomicilio, etc.) sur la page `/study/$id`, via un helper global `setBrand(slug)` qui injecte un `<link id="stella-theme">` dans le `<head>`.
 
 ## Ce qui sera créé
 
-### 1. Server function proxy (`src/lib/stella-pack.functions.ts`)
-- `getStellaPack({ id })` — `createServerFn` qui appelle `${STELLA_API_URL}/integration/study/${id}/lovable-pack` côté serveur et retourne le JSON.
-- Permet d'éviter les soucis de CORS / `127.0.0.1` et de pouvoir changer plus tard d'URL (dev local → prod) sans toucher le frontend.
-- L'URL de base sera lue depuis `process.env.STELLA_API_URL` (avec fallback `http://127.0.0.1:8000` pour le dev). Note importante : `127.0.0.1` côté serveur Lovable ne pointera **pas** vers ta machine — pour tester depuis le preview Lovable, il faudra exposer ton serveur Stella publiquement (ngrok, Cloudflare tunnel, ou déployer). On en reparle après le plan.
+### 1. Helper `setBrand` — `src/lib/stella-brand.ts`
 
-### 2. Hook React (`src/hooks/useStellaPack.ts`)
-- `useStellaPack(id)` — wrappe `useServerFn(getStellaPack)` dans un `useQuery` (TanStack Query déjà présent).
-- Retourne `{ pack, isLoading, error }`.
+Fonction pure qui ajoute ou met à jour la balise `<link>` :
 
-### 3. Composants réutilisables (`src/components/stella/`)
-- `BrandStyleInjector.tsx` — prend `pack.css.variables` (objet `{ "--stella-primary": "#...", ... }`) et injecte un `<style>{`:root { ... }`}</style>` dans le DOM via un portail dans `<head>` (ou un `<style>` inline). Nettoyage au démontage.
-- `KpiList.tsx` — affiche `pack.lovable_config.payload.metrics` sous forme de liste/cards, en marquant visuellement les KPI `optional`.
-- `StudyPreview.tsx` — iframe pointant sur `pack.data_endpoints.preview_html` (sandbox approprié).
+```ts
+export function setBrand(slug: string) {
+  const base = import.meta.env.VITE_STELLA_PUBLIC_URL ?? "http://127.0.0.1:8000";
+  const href = `${base}/integration/css-vars.css?brand_slug=${encodeURIComponent(slug)}`;
+  let link = document.getElementById("stella-theme") as HTMLLinkElement | null;
+  if (!link) {
+    link = document.createElement("link");
+    link.id = "stella-theme";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+  }
+  link.href = href;
+}
+```
 
-### 4. Page dynamique (`src/routes/study.$id.tsx`)
-- Route `/study/$id` qui :
-  1. Charge le pack via `useStellaPack(id)` (loader + `useSuspenseQuery`).
-  2. Monte `<BrandStyleInjector vars={pack.css.variables} />`.
-  3. Affiche un header simple, puis `<KpiList metrics={...} />` et `<StudyPreview src={...} />` côte à côte / empilés.
-  4. `head()` avec titre dérivé de l'étude si disponible.
-- `errorComponent` + `notFoundComponent` standards.
+- Exposé aussi sur `window.setBrand` (utile pour tests manuels en console et scripts externes).
+- Helper symétrique `clearBrand()` qui retire la balise.
+
+### 2. Composant `<BrandTheme slug={...} />` — `src/components/stella/BrandTheme.tsx`
+
+Wrapper React minimal qui appelle `setBrand(slug)` dans `useEffect` (re-déclenché si `slug` change) et `clearBrand()` au unmount. Permet d'utiliser le helper de façon idiomatique depuis une route.
+
+### 3. Intégration dans `/study/$id` — `src/routes/study.$id.tsx`
+
+- Lire un slug de marque depuis :
+  - le query param `?brand=shiva` (priorité 1, pour tester rapidement),
+  - sinon un champ du pack (ex. `pack.brand_slug` si présent),
+  - sinon rien (pas de thème injecté).
+- Monter `<BrandTheme slug={resolvedSlug} />` en haut de la page quand un slug est résolu.
+- Coexiste avec le `<BrandStyleInjector>` existant (qui injecte les variables du pack en inline `<style>`) : le `<link>` Stella charge en plus le CSS officiel de la marque servi par l'API.
 
 ## Détails techniques
 
-- **Types** : un fichier `src/types/stella-pack.ts` décrivant la forme attendue (`StellaPack`, `StellaCssVars`, `StellaMetric`, `StellaDataEndpoints`). Si tu as une spec/OpenAPI, je peux la raffiner — sinon je pars de ce que tu m'as montré (`css.variables`, `lovable_config.payload.metrics`, `data_endpoints.preview_html`) et je rends le reste tolérant.
-- **CORS** : géré côté serveur (le proxy `createServerFn` fait l'appel HTTP côté Worker, pas le navigateur).
-- **Sécurité iframe** : `sandbox="allow-scripts allow-same-origin"` par défaut (à ajuster selon ce que `preview_html` doit faire).
-- **Pas de secret nécessaire** (tu as confirmé que l'endpoint est public).
+- **URL de l'API** : nouvelle variable publique `VITE_STELLA_PUBLIC_URL` (par défaut `http://127.0.0.1:8000`). Publique car le `<link>` est résolu par le navigateur, pas par le serveur — donc il faut une URL accessible depuis la machine de l'utilisateur final. Pour un test en local avec le preview Lovable, `127.0.0.1` fonctionne uniquement si l'utilisateur teste depuis sa propre machine où Stella tourne. Pour la prod ou un partage, il faudra exposer Stella (ngrok, cloudflared, déploiement) et mettre l'URL publique dans cette variable.
+- **SSR** : `setBrand` touche au DOM → guard `typeof document !== "undefined"` au début du helper pour éviter un crash pendant le rendu serveur.
+- **Pas de fetch côté serveur** : on charge un stylesheet via `<link>` côté client, pas de proxy serverFn nécessaire (option écartée).
+- **Pas de migration, pas de secret, pas de table** ajoutés.
 
-## Ce que je ne fais PAS dans ce plan
+## Fichiers touchés
 
-- Pas de base de données / table en local pour cacher le pack — appel direct à chaque fois (rapide à ajouter ensuite avec TanStack Query `staleTime`).
-- Pas de gestion multi-tenant / sélection de `brand_slug` — le pack contient déjà ses propres variables CSS par étude.
-- Pas de fallback offline.
+- `src/lib/stella-brand.ts` (nouveau)
+- `src/components/stella/BrandTheme.tsx` (nouveau)
+- `src/routes/study.$id.tsx` (édité — lecture du slug + montage de `<BrandTheme>`)
+- `.env` (édité — ajout `VITE_STELLA_PUBLIC_URL=http://127.0.0.1:8000`)
 
-## Question pratique avant que tu valides
+## Hors scope
 
-Pour que le preview Lovable puisse réellement atteindre `http://127.0.0.1:8000`, ton serveur local doit être exposé sur Internet (les serveurs Lovable ne peuvent pas appeler ton `localhost`). Solutions simples : **ngrok** ou **cloudflared tunnel**. On peut aussi mettre l'URL en variable d'environnement pour que tu changes facilement entre local et prod. **Je le mets en place dans cette implémentation** (variable `STELLA_API_URL` + fallback), tu n'auras qu'à me donner l'URL publique quand tu l'auras.
-
-Valide ce plan et je passe à l'implémentation.
+- UI de sélection de marque (sélecteur dropdown) — peut être ajouté ensuite si besoin.
+- Persistance du choix de marque (localStorage).
+- Préchargement / cache du CSS Stella.
