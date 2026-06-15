@@ -1,12 +1,16 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useStellaPack } from "@/hooks/useStellaPack";
 import { BrandStyleInjector } from "@/components/stella/BrandStyleInjector";
+import { BrandTheme } from "@/components/stella/BrandTheme";
 import { KpiList } from "@/components/stella/KpiList";
 import { StudyPreview } from "@/components/stella/StudyPreview";
 
 export const Route = createFileRoute("/study/$id")({
   head: ({ params }) => ({
     meta: [{ title: `Étude ${params.id} — Stella` }],
+  }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    brand: typeof search.brand === "string" ? search.brand : undefined,
   }),
   component: StudyPage,
   errorComponent: StudyError,
@@ -15,6 +19,7 @@ export const Route = createFileRoute("/study/$id")({
 
 function StudyPage() {
   const { id } = Route.useParams();
+  const { brand } = Route.useSearch();
   const { data: pack, isLoading, error } = useStellaPack(id);
 
   if (isLoading) {
@@ -31,9 +36,11 @@ function StudyPage() {
   const metrics = pack.lovable_config?.payload?.metrics;
   const previewSrc = pack.data_endpoints?.preview_html;
   const vars = pack.css?.variables;
+  const brandSlug = brand ?? pack.brand_slug ?? null;
 
   return (
     <>
+      <BrandTheme slug={brandSlug} />
       <BrandStyleInjector vars={vars} />
       <main className="mx-auto max-w-6xl space-y-8 p-6 md:p-10">
         <header className="space-y-1">

@@ -11,6 +11,7 @@ export interface StellaMetric {
 }
 
 export interface StellaPack {
+  brand_slug?: string;
   css?: {
     variables?: StellaCssVariables;
   };
