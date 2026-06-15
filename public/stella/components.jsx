@@ -5,7 +5,12 @@ const { useState, useEffect, useRef, useMemo, useCallback } = React;
 window.openStudyWizard = function openStudyWizard() {
   const path = '/app/studies/new';
   try {
-    window.parent.postMessage({ type: 'stella:navigate', path }, window.location.origin);
+    // Parent window (Lovable preview shell) is on a different origin than this iframe.
+    // Using window.location.origin as targetOrigin throws:
+    //   "Failed to execute 'postMessage' on 'DOMWindow': The target origin provided
+    //    does not match the recipient window's origin."
+    // We don't send sensitive data here (just a navigation hint), so '*' is safe.
+    window.parent.postMessage({ type: 'stella:navigate', path }, '*');
   } catch (e) {}
   setTimeout(() => {
     window.parent.location.href = path;
