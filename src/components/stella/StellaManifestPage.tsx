@@ -87,6 +87,107 @@ const titleStyle: React.CSSProperties = { fontSize: 34, lineHeight: 1.05, fontWe
 const metaStyle: React.CSSProperties = { fontSize: 13, opacity: 0.72, display: "flex", flexWrap: "wrap", gap: 10 };
 const listStyle: React.CSSProperties = { margin: 0, paddingLeft: 18, fontSize: 15, lineHeight: 1.45 };
 
+type AnyRec = Record<string, unknown>;
+
+function pickString(rec: AnyRec | undefined, ...keys: string[]): string | undefined {
+  if (!rec) return undefined;
+  for (const k of keys) {
+    const v = rec[k];
+    if (typeof v === "string" && v.length) return v;
+    if (typeof v === "number") return String(v);
+  }
+  return undefined;
+}
+
+function pickNumberLike(rec: AnyRec | undefined, ...keys: string[]): string | undefined {
+  if (!rec) return undefined;
+  for (const k of keys) {
+    const v = rec[k];
+    if (v === null || v === undefined) continue;
+    if (typeof v === "number") return Number.isFinite(v) ? String(v) : undefined;
+    if (typeof v === "string" && v.length) return v;
+  }
+  return undefined;
+}
+
+type ResolvedKpi = {
+  id: string;
+  label: string;
+  value: string;
+  unit?: string;
+  delta?: string;
+  source?: string;
+};
+
+function resolveKpi(manifest: StellaFrontendManifest, id: string): ResolvedKpi | null {
+  const byId = manifest.study_data?.metrics?.by_id || {};
+  const items = manifest.study_data?.metrics?.items || [];
+  const raw =
+    (byId[id] as AnyRec | undefined) ||
+    (items.find((m) => (m as AnyRec).metric_id === id || (m as AnyRec).id === id) as AnyRec | undefined);
+  if (!raw) {
+    return { id, label: id, value: "—" };
+  }
+  const label =
+    pickString(raw, "label", "name", "title", "metric_label", "display_name") || id;
+  const value =
+    pickNumberLike(raw, "value", "display_value", "current_value", "score", "amount") ?? "—";
+  const unit = pickString(raw, "unit", "unit_label", "suffix");
+  const delta = pickNumberLike(raw, "delta", "trend", "variation", "change");
+  const source = pickString(raw, "source", "provider", "source_id");
+  return { id, label, value, unit, delta, source };
+}
+
+function resolveHeroKpiIds(
+  manifest: StellaFrontendManifest,
+  slide?: StellaFrontendManifest["renderer"]["playlist"]["slides"][number],
+  max = 6,
+): string[] {
+  const ordered: string[] = [];
+  const push = (id?: string | null) => {
+    if (!id) return;
+    if (ordered.includes(id)) return;
+    ordered.push(id);
+  };
+  (slide?.expected_kpis || []).forEach(push);
+  (manifest.brand_profile?.priority_kpis || []).forEach(push);
+  const byId = manifest.study_data?.metrics?.by_id || {};
+  Object.keys(byId).forEach(push);
+  (manifest.study_data?.metrics?.items || []).forEach((m) => {
+    push(pickString(m as AnyRec, "metric_id", "id"));
+  });
+  return ordered.slice(0, max);
+}
+
+function KpiCard({ kpi, accent }: { kpi: ResolvedKpi; accent?: boolean }) {
+  return (
+    <div
+      style={{
+        borderRadius: 18,
+        padding: "16px 18px",
+        background: accent ? "var(--stella-primary, #0066CC)" : "#FFFFFF",
+        color: accent ? "#FFFFFF" : "inherit",
+        boxShadow: "0 12px 24px rgba(0,0,0,0.06)",
+        display: "grid",
+        gap: 6,
+        minWidth: 0,
+      }}
+    >
+      <div style={{ fontSize: 11, opacity: 0.8, textTransform: "uppercase", letterSpacing: 0.6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {kpi.label}
+      </div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+        <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1 }}>{kpi.value}</div>
+        {kpi.unit ? <div style={{ fontSize: 14, opacity: 0.85 }}>{kpi.unit}</div> : null}
+      </div>
+      {kpi.delta ? (
+        <div style={{ fontSize: 12, opacity: 0.85 }}>Δ {kpi.delta}</div>
+      ) : null}
+      <div style={{ fontSize: 10, opacity: 0.55 }}>{kpi.id}{kpi.source ? ` · ${kpi.source}` : ""}</div>
+    </div>
+  );
+}
+
 function applyCssVariables(variables: Record<string, string>) {
   if (typeof document === "undefined") return;
   Object.entries(variables).forEach(([key, value]) => {
