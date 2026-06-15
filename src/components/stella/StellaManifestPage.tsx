@@ -13,6 +13,10 @@ export type StellaFrontendManifest = {
     font_family?: string | null;
     palette?: Record<string, string>;
   };
+  brand_profile?: {
+    priority_kpis?: string[];
+    [key: string]: unknown;
+  } | null;
   renderer: {
     component_map: {
       items: Array<{
