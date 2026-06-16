@@ -9,9 +9,13 @@ function getQueryParam(name: string, fallback = "") {
 }
 
 export default function StellaVisualRoute() {
-  const auto =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("auto") === "1";
+  const [search, setSearch] = React.useState("");
+
+  React.useEffect(() => {
+    setSearch(window.location.search);
+  }, []);
+
+  const auto = new URLSearchParams(search).get("auto") === "1";
   const studyId = getQueryParam("studyId", "");
   const baseUrl = getQueryParam(
     "baseUrl",
