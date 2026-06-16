@@ -9,19 +9,14 @@ function getQueryParam(name: string, fallback = "") {
 }
 
 export default function StellaVisualRoute() {
-  const [search, setSearch] = React.useState("");
-
-  React.useEffect(() => {
-    setSearch(window.location.search);
-  }, []);
-
-  const auto = new URLSearchParams(search).get("auto") === "1";
-  const studyId = getQueryParam("studyId", "");
-  const baseUrl = getQueryParam(
-    "baseUrl",
-    (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) || "http://127.0.0.1:8000",
-  );
-  const debug = getQueryParam("debug", "0") === "1";
+  const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const auto = params?.get("auto") === "1";
+  const studyId = params?.get("studyId") || "";
+  const baseUrl =
+    params?.get("baseUrl") ||
+    (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) ||
+    "http://127.0.0.1:8000";
+  const debug = params?.get("debug") === "1";
 
   if (auto) {
     return <StellaAutoSlidesViewport baseUrl={baseUrl} debug={debug} />;
