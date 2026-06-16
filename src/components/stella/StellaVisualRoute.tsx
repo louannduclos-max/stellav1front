@@ -9,7 +9,17 @@ function getQueryParam(name: string, fallback = "") {
 }
 
 export default function StellaVisualRoute() {
-  const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const [search, setSearch] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setSearch(window.location.search);
+  }, []);
+
+  if (search === null) {
+    return <div className="stella-5-0-viewport"><p style={{ color: "#fff" }}>Chargement Stella 5.0…</p></div>;
+  }
+
+  const params = new URLSearchParams(search);
   const auto = params?.get("auto") === "1";
   const studyId = params?.get("studyId") || "";
   const baseUrl =
