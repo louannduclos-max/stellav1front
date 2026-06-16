@@ -1,5 +1,6 @@
 import React from "react";
 import StellaSlidesViewport from "./StellaSlidesViewport";
+import StellaAutoSlidesViewport from "./StellaAutoSlidesViewport";
 import "./assets/chrome.css";
 
 function getQueryParam(name: string, fallback = "") {
@@ -14,11 +15,16 @@ export default function StellaVisualRoute() {
     (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) || "http://127.0.0.1:8000",
   );
   const debug = getQueryParam("debug", "0") === "1";
+  const auto = getQueryParam("auto", "0") === "1";
+
+  if (auto) {
+    return <StellaAutoSlidesViewport baseUrl={baseUrl} debug={debug} />;
+  }
 
   if (!studyId) {
     return (
       <div className="stella-5-0-viewport">
-        <p className="stella-5-0-error">Paramètre studyId manquant dans l'URL.</p>
+        <p className="stella-5-0-error">Paramètre studyId manquant dans l'URL (ou utiliser ?auto=1).</p>
       </div>
     );
   }
