@@ -107,7 +107,7 @@ non-compliant  : ${qaReports.filter((r) => !r.whitespace_compliant).map((r) => r
               height: 1080,
             }}
           >
-            <StellaSlide5_0Comp slide={slide} />
+            <StellaSlide5_0Comp slide={slide} debug={debug} />
           </div>
         </div>
       ))}

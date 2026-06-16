@@ -50,6 +50,9 @@
 
 .stella-5-0-object {
   box-sizing: border-box;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .stella-5-0-object[data-object-type="textbox"] {
@@ -59,6 +62,20 @@
 
 .stella-5-0-object[data-object-type="shape"] {
   display: block;
+}
+
+/* Debug visual mode — only when slide container has .stella-5-0-debug-on */
+.stella-5-0-slide-container.stella-5-0-debug-on .stella-5-0-object {
+  outline: 1px dashed rgba(139, 92, 246, 0.55);
+  outline-offset: -1px;
+}
+.stella-5-0-slide-container.stella-5-0-debug-on
+  .stella-5-0-object[data-object-type="textbox"] {
+  background-color: rgba(139, 92, 246, 0.06);
+}
+.stella-5-0-slide-container.stella-5-0-debug-on
+  .stella-5-0-object[data-object-type="shape"] {
+  outline-color: rgba(26, 91, 160, 0.55);
 }
 
 .stella-5-0-debug {
