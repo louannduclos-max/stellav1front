@@ -8,5 +8,6 @@ export const Route = createFileRoute("/stella-visual")({
     brand: typeof search.brand === "string" ? search.brand : "o2",
     baseUrl: typeof search.baseUrl === "string" ? search.baseUrl : "",
     debug: typeof search.debug === "string" ? search.debug : "0",
+    auto: typeof search.auto === "string" ? search.auto : "0",
   }),
 });
