@@ -7,7 +7,7 @@ export const Route = createFileRoute("/stella-visual")({
     studyId: typeof search.studyId === "string" ? search.studyId : "",
     brand: typeof search.brand === "string" ? search.brand : "o2",
     baseUrl: typeof search.baseUrl === "string" ? search.baseUrl : "",
-    debug: typeof search.debug === "string" ? search.debug : "0",
-    auto: typeof search.auto === "string" ? search.auto : "0",
+    debug: search.debug === 1 || search.debug === "1" ? 1 : 0,
+    auto: search.auto === 1 || search.auto === "1" ? 1 : 0,
   }),
 });

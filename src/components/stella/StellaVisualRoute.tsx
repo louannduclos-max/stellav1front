@@ -9,15 +9,24 @@ function getQueryParam(name: string, fallback = "") {
 }
 
 export default function StellaVisualRoute() {
-  const auto =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("auto") === "1";
-  const studyId = getQueryParam("studyId", "");
-  const baseUrl = getQueryParam(
-    "baseUrl",
-    (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) || "http://127.0.0.1:8000",
-  );
-  const debug = getQueryParam("debug", "0") === "1";
+  const [search, setSearch] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setSearch(window.location.search);
+  }, []);
+
+  if (search === null) {
+    return <div className="stella-5-0-viewport"><p style={{ color: "#fff" }}>Chargement Stella 5.0…</p></div>;
+  }
+
+  const params = new URLSearchParams(search);
+  const auto = params?.get("auto") === "1";
+  const studyId = params?.get("studyId") || "";
+  const baseUrl =
+    params?.get("baseUrl") ||
+    (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) ||
+    "http://127.0.0.1:8000";
+  const debug = params?.get("debug") === "1";
 
   if (auto) {
     return <StellaAutoSlidesViewport baseUrl={baseUrl} debug={debug} />;
