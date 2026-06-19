@@ -98,6 +98,7 @@ function ObjectRenderer({ obj }: { obj: StellaSlideObject }) {
     return (
       <div
         className="stella-5-0-object"
+        data-object="true"
         data-object-type={obj.data_object_type}
         data-object-id={obj.id}
         style={{ ...baseStyle, padding: 0 }}
@@ -108,6 +109,7 @@ function ObjectRenderer({ obj }: { obj: StellaSlideObject }) {
   return (
     <div
       className="stella-5-0-object"
+      data-object="true"
       data-object-type={obj.data_object_type}
       data-object-id={obj.id}
       style={baseStyle}
