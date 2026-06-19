@@ -70,6 +70,42 @@ function ObjectRenderer({ obj }: { obj: StellaSlideObject }) {
   const isShapeOnly =
     obj.data_object_type === "shape" && (obj.children?.length || 0) === 0 && !obj.text;
 
+  if (obj.data_object_type === "chart") {
+    return (
+      <div
+        className="stella-5-0-object"
+        data-object="true"
+        data-object-type="chart"
+        data-object-id={obj.id}
+        data-chart-id={obj.chart_id || ""}
+        style={{
+          position: "absolute",
+          left: `${obj.left}px`,
+          top: `${obj.top}px`,
+          width: `${obj.width}px`,
+          height: `${obj.height}px`,
+          boxSizing: "border-box",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          gap: "12px",
+          background: "var(--bg-light)",
+          border: "2px dashed rgba(26, 91, 160, 0.18)",
+          borderRadius: "8px",
+          color: "var(--text-muted)",
+          fontFamily: "var(--stella-font, Inter, Arial, sans-serif)",
+          fontSize: "14px",
+          overflow: "hidden",
+        }}
+      >
+        <span style={{ fontSize: "32px", opacity: 0.4 }}>📊</span>
+        <span style={{ opacity: 0.5 }}>{obj.chart_id || "chart"}</span>
+      </div>
+    );
+  }
+
+
   const baseStyle: React.CSSProperties = {
     position: "absolute",
     left: `${obj.left}px`,
