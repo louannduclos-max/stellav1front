@@ -16,7 +16,7 @@ function useViewportScale(ref: React.RefObject<HTMLDivElement | null>) {
   useEffect(() => {
     function recompute() {
       if (!ref.current) return;
-      const parentWidth = ref.current.parentElement?.clientWidth || window.innerWidth;
+      const parentWidth = ref.current.clientWidth || window.innerWidth;
       const next = Math.min(1, (parentWidth - 80) / 1920);
       setScale(next);
     }
@@ -76,7 +76,7 @@ export default function StellaAutoSlidesViewport({ baseUrl = DEFAULT_BASE_URL, d
   }
 
   return (
-    <div className="stella-5-0-viewport">
+    <div className="stella-5-0-viewport" ref={stageRef}>
       {debug ? (
         <pre className="stella-5-0-debug">
 {`[Stella 5.0 debug — auto]
@@ -95,7 +95,6 @@ non-compliant  : ${qaReports.filter((r) => !r.whitespace_compliant).map((r) => r
         <div
           key={slide.slide_id}
           className="stella-5-0-stage"
-          ref={stageRef}
           style={{
             width: `${1920 * scale}px`,
             height: `${1080 * scale}px`,
