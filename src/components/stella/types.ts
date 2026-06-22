@@ -35,11 +35,25 @@ export type StellaSlide5_0 = {
   expected_strings: string[];
 };
 
+export type StellaCssVars = {
+  slug: string | null;
+  brand_name: string;
+  variables: Record<string, string>;
+};
+
 export type StellaSlides5_0Payload = {
   version: string;
   study_id: string;
+  tenant_id?: string;
+  brand_slug?: string | null;
   canvas: { width: number; height: number };
+  /** CSS vars résolus (registre statique fusionné avec override Supabase) — auto-injection */
+  css_vars?: StellaCssVars;
   slides: StellaSlide5_0[];
+  /** Sections skippées côté backend car tous les slots sont FALLBACK */
+  skipped_sections?: string[];
+  /** study_id créé ou retrouvé par /auto-slides-5_0 */
+  auto_created_study_id?: string;
 };
 
 export type StellaQAReport = {

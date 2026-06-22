@@ -73,7 +73,7 @@ function ObjectRenderer({ obj }: { obj: StellaSlideObject }) {
   if (obj.data_object_type === "chart") {
     return (
       <div
-        className="stella-5-0-object"
+        className="stella-5-0-object stella-5-0-chart-placeholder"
         data-object="true"
         data-object-type="chart"
         data-object-id={obj.id}

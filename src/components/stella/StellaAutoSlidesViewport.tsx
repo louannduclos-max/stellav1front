@@ -1,5 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import StellaSlide5_0Comp from "./StellaSlide5_0";
+import { useViewportScale } from "./useViewportScale";
+import { useBrandCssVars } from "./useBrandCssVars";
 import { auditAllSlides } from "./qa";
 import type { StellaSlides5_0Payload, StellaQAReport } from "./types";
 
@@ -11,28 +13,15 @@ type Props = {
   debug?: boolean;
 };
 
-function useViewportScale(ref: React.RefObject<HTMLDivElement | null>) {
-  const [scale, setScale] = useState(1);
-  useEffect(() => {
-    function recompute() {
-      if (!ref.current) return;
-      const parentWidth = ref.current.clientWidth || window.innerWidth;
-      const next = Math.min(1, (parentWidth - 80) / 1920);
-      setScale(next);
-    }
-    recompute();
-    window.addEventListener("resize", recompute);
-    return () => window.removeEventListener("resize", recompute);
-  }, [ref]);
-  return scale;
-}
-
 export default function StellaAutoSlidesViewport({ baseUrl = DEFAULT_BASE_URL, debug = false }: Props) {
   const [payload, setPayload] = useState<StellaSlides5_0Payload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const stageRef = useRef<HTMLDivElement | null>(null);
-  const scale = useViewportScale(stageRef);
+  // FIX F3+F4 — hook partagé, ref sur le viewport (pas dans le .map)
+  const { ref: viewportRef, scale } = useViewportScale();
+
+  // Injection CSS vars brand depuis la réponse slides
+  useBrandCssVars(payload?.css_vars, payload?.brand_slug, baseUrl);
 
   const url = `${baseUrl}/integration/auto-slides-5_0`;
 
@@ -76,7 +65,7 @@ export default function StellaAutoSlidesViewport({ baseUrl = DEFAULT_BASE_URL, d
   }
 
   return (
-    <div className="stella-5-0-viewport" ref={stageRef}>
+    <div className="stella-5-0-viewport" ref={viewportRef}>
       {debug ? (
         <pre className="stella-5-0-debug">
 {`[Stella 5.0 debug — auto]

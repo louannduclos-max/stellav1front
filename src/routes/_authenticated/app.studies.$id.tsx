@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { StudySlideViewer } from "@/components/study-slide-viewer";
 import { StudyResultView } from "@/components/result/study-result-view";
 import { StudyGenerationStage } from "@/components/study-generation-stage";
+import StellaSlidesViewport from "@/components/stella/StellaSlidesViewport";
 
 export const Route = createFileRoute("/_authenticated/app/studies/$id")({
   head: () => ({ meta: [{ title: "Étude — Stella" }] }),
@@ -293,13 +294,17 @@ function StudyDetail() {
         {isCompleted && (
           <section className="border border-border rounded-md p-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-medium">Prévisualisation des slides</h2>
+              <h2 className="font-medium">Aperçu Stella interactif</h2>
               <span className="text-xs text-muted-foreground">
                 {delivQ.data?.length ?? 0} livrable(s)
               </span>
             </div>
+            {/* Slides temps réel depuis le backend — disponibles immédiatement après génération */}
+            <div className="mb-4 rounded-md overflow-hidden border border-border bg-black" style={{ height: "480px" }}>
+              <StellaSlidesViewport studyId={id} />
+            </div>
             {!delivQ.data?.length && (
-              <div className="text-sm text-muted-foreground">Aucun livrable pour le moment.</div>
+              <div className="text-sm text-muted-foreground">⏳ Livrables en cours d'upload…</div>
             )}
             {!!delivQ.data?.length && (
               <StudySlideViewer
