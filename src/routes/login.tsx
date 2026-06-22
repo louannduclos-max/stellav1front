@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { createLovableAuth } from "@lovable.dev/cloud-auth-js";
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { Button } from "@/components/ui/button";
@@ -7,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-
-const lovableAuth = createLovableAuth();
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Connexion — Stella" }] }),
@@ -111,14 +108,15 @@ function LoginPage() {
   const handleGoogle = async () => {
     setLoading(true);
     try {
-      const result = await lovableAuth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/login" + window.location.search,
+      // Use Supabase OAuth directly (replaces lovableAuth which required Lovable Cloud ~oauth/initiate endpoint)
+      const { error } = await supabaseBrowser.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin + "/login" + (window.location.search || ""),
+        },
       });
-      if (!result.redirected && result.tokens) {
-        const { error } = await supabaseBrowser.auth.setSession(result.tokens);
-        if (error) throw error;
-      }
-      if (result.error) throw result.error;
+      if (error) throw error;
+      // signInWithOAuth redirects the page; code below only runs if it fails
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erreur Google");
       setLoading(false);
