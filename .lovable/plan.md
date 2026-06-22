@@ -1,128 +1,98 @@
-## Objectif
+# Plan de migration vers Supabase "cowork"
 
-1. Préparer un message clair à renvoyer à ton autre IA pour qu'elle ait toute l'info technique sur la base Lovable Cloud (Supabase) actuelle.
-2. Appliquer la migration RLS "company RBAC" (owner_global / admin_filiale / analyst / reader) dans Lovable Cloud, adaptée au schéma réel du projet.
-
----
-
-## Partie 1 — Message à copier-coller à ton autre IA
-
-```
-Le projet front est sur Lovable Cloud (Supabase managé). Voici l'état réel
-de la base à date — utilise ça comme référence, ne suppose rien d'autre.
-
-BACKEND
-- URL et clés gérées par Lovable Cloud, exposées au front via
-  VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY.
-- Côté serveur (webhook Cloud Run), utilise SUPABASE_URL +
-  SUPABASE_SERVICE_ROLE_KEY → bypass RLS automatique, OK pour écrire
-  les livrables après génération.
-- Secrets déjà configurés côté Cloud : GENERATION_WEBHOOK_SECRET,
-  LOVABLE_API_KEY, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY,
-  SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL.
-
-STORAGE
-- Un seul bucket : `deliverables` (privé). Sert à stocker les fichiers
-  générés (PPTX / PDF / images). URLs signées à générer côté serveur.
-
-TABLES (schéma public, déjà existantes)
-- companies(id uuid PK, name, display_name, slug, actor_type,
-  group_name, status, created_by, created_at, updated_at, …)
-- profiles(id uuid PK = auth.users.id, email, full_name, role, …)
-- studies(id uuid PK, company_id uuid → companies, user_id uuid,
-  created_by uuid, title, status, generation_status,
-  generation_started_at/completed_at/error_message, study_type,
-  study_category_code, study_subtype_code, country_code, city_name,
-  postal_code, palette_key, + jsonb : included_activity_families,
-  main_target_public, synthesis_kpis, market_kpis, hr_kpis,
-  competition_kpis, transport_kpis, commune_types, zone_focus,
-  risks, reference_years, road_axes, demographic_segments, …)
-- study_deliverables(id, study_id → studies, type, file_url,
-  file_name, file_size, mime_type, generated_at, created_at)
-- user_company_permissions(id, user_id, company_id, granted_by, …)
-- user_roles(id, user_id, role) — table dédiée aux rôles (NE PAS
-  stocker les rôles sur profiles, sinon faille d'élévation).
-- Tables master : study_types_master, study_categories_master,
-  study_subtypes_master, target_publics_master, kpi_master,
-  risks_master, commune_types_master, zone_focus_master,
-  territory_modes_master, service_modes_master, sap_activities_master,
-  company_activity_families, company_target_publics,
-  company_branding, company_study_presets, internal_crm_logs.
-
-RLS ACTUELLE (résumé)
-- companies : admin manage tout, user lit si user_company_permissions
-  lui donne accès à la company.
-- studies : admin all, sinon user_id = auth.uid() ou created_by =
-  auth.uid().
-- study_deliverables : admin all, sinon lecture si study appartient
-  à l'utilisateur.
-- Fonction d'aide existante : private.is_admin(uuid) (security definer).
-
-MIGRATION RLS À APPLIQUER (RBAC company-scoped)
-- Nouveau type enum public.app_role :
-  ('owner_global','admin_filiale','analyst','reader').
-- user_roles.role passe sur ce enum (+ colonne optionnelle company_id
-  pour scoper le rôle à une filiale).
-- Fonctions security definer :
-  - has_role(_user uuid, _role app_role) bool
-  - is_owner_global(_user uuid) bool
-  - user_company_ids(_user uuid) setof uuid
-- Politiques :
-  - owner_global → SELECT/INSERT/UPDATE/DELETE sur tout.
-  - admin_filiale → CRUD limité à sa/ses company_id.
-  - analyst → SELECT + UPDATE limité à sa company_id.
-  - reader → SELECT only sur sa company_id.
-  - service_role (webhook Cloud Run) bypass naturel.
-
-WEBHOOK CLOUD RUN
-- Endpoint backend appelé après génération. Header attendu :
-  x-webhook-signature: HMAC-SHA256(body, GENERATION_WEBHOOK_SECRET).
-- Vérifier la signature AVANT toute écriture.
-- Écrit dans studies (generation_status, *_completed_at) et insère
-  des lignes study_deliverables (+ upload dans bucket `deliverables`).
-- Côté front, je vais exposer une route publique
-  /api/public/webhooks/generation si tu veux que le backend tape
-  directement Lovable plutôt que Supabase — sinon tu écris en direct
-  via SERVICE_ROLE_KEY, plus simple.
-
-CE QUE J'AI BESOIN DE TOI
-1. Le SQL exact du fichier
-   supabase/migrations/20260622_rls_company_rbac.sql que tu as
-   généré, pour que je l'adapte au schéma ci-dessus avant
-   exécution (les rôles owner_global/admin_filiale/analyst/reader
-   n'existent pas encore, et user_roles.role est aujourd'hui un text).
-2. Le FRONT_WEBHOOK_URL exact que tu veux appeler après génération.
-3. Confirme que tu écris bien via SUPABASE_SERVICE_ROLE_KEY (bypass
-   RLS) côté Cloud Run — pas via la publishable key.
-```
+Objectif : déplacer toute la base actuelle (Lovable Cloud) vers ton propre projet Supabase appelé **cowork**, sans rien perdre (schéma, données, fichiers, users).
 
 ---
 
-## Partie 2 — Migration RLS à appliquer dans Lovable Cloud
+## Ce qu'on va migrer
 
-Je vais créer une migration unique qui :
-
-1. Crée le type `public.app_role` avec les 4 rôles.
-2. Ajoute `company_id uuid NULL` à `user_roles` (pour scoper analyst/admin_filiale/reader à une filiale ; owner_global laisse NULL).
-3. Convertit `user_roles.role` (text) vers le nouveau enum, en mappant les valeurs existantes (`admin` → `owner_global`, sinon `reader`).
-4. Crée les fonctions security definer : `has_role`, `is_owner_global`, `user_company_ids`.
-5. Remplace les policies actuelles sur `companies`, `studies`, `study_deliverables` par les nouvelles policies RBAC.
-6. Garde la policy `user_roles` existante (lecture de ses propres rôles) et ajoute une policy "owner_global gère tous les rôles".
-7. Vérifie que les GRANTS sont posés (`authenticated`, `service_role`).
-
-Important :
-- Je ne touche pas aux tables master (lecture publique, déjà OK).
-- Je ne touche pas au bucket `deliverables` (reste privé, accès via URL signée côté serveur).
-- Tu valideras la migration (bouton Approuver) avant qu'elle s'exécute, comme d'habitude.
+1. **Structure** : 22 tables, types enum, fonctions (`has_role`, `is_admin`, `is_owner_global`, `user_company_ids`, `touch_updated_at`, `handle_new_user`), triggers, RLS + GRANTs
+2. **Données** : contenu de chaque table (companies, studies, masters, profiles, user_roles, study_deliverables, etc.)
+3. **Auth users** : comptes utilisateurs (emails, mots de passe hashés, providers)
+4. **Storage** : bucket `deliverables` + tous les fichiers
+5. **Secrets serveur** : `GENERATION_WEBHOOK_SECRET`, `LOVABLE_API_KEY` (à recréer côté cowork)
+6. **Config Auth** : providers activés (Google), URLs de redirection
 
 ---
 
-## Partie 3 — Après la migration
+## Étapes (baby steps)
 
-- Tu pourras attribuer les rôles via un simple `INSERT INTO user_roles (user_id, role, company_id) VALUES (...)`. Je peux te préparer un petit écran d'admin si tu veux, mais ce n'est pas obligatoire pour que la migration parte.
-- Côté Cloud Run, rien à changer : le service_role bypass RLS, donc la nouvelle RLS n'impacte pas le webhook.
-- Côté front, les requêtes existantes continueront de marcher pour les owner_global ; les autres rôles ne verront que les studies/deliverables de leur company_id.
+### Étape 1 — Préparer le projet "cowork"
+- Tu crées (ou tu as déjà) le projet Supabase **cowork** sur supabase.com
+- Tu me donnes :
+  - L'URL du projet (`https://xxxxx.supabase.co`)
+  - La **clé anon/publishable** (pour le front)
+  - La **clé service_role** (pour la migration — je l'utilise une fois puis on la supprime du chat)
+  - Le **mot de passe de la base** (pour `pg_dump` / restore direct)
 
-Dis-moi si tu veux que je :
-(a) parte direct avec la migration telle que décrite, **ou**
-(b) attende d'abord le SQL exact de ton autre IA pour le reprendre tel quel.
+### Étape 2 — Exporter le schéma actuel
+Je génère un fichier SQL complet à partir des migrations Lovable + introspection :
+- `cowork_schema.sql` → CREATE TYPE, CREATE TABLE, GRANT, RLS, POLICIES, FUNCTIONS, TRIGGERS
+- Idempotent (IF NOT EXISTS partout) pour pouvoir le rejouer sans risque
+
+### Étape 3 — Exporter les données
+Deux options selon ce que tu peux faire :
+- **Option A (recommandée, rapide)** : `pg_dump --data-only` depuis la base actuelle → `cowork_data.sql`. Nécessite l'accès à `SUPABASE_DB_URL` côté Lovable Cloud (à voir si dispo).
+- **Option B (fallback)** : export CSV table par table depuis Lovable Cloud → import CSV dans cowork (plus long mais toujours faisable).
+
+### Étape 4 — Importer dans cowork
+1. Je joue `cowork_schema.sql` sur cowork (SQL editor ou `psql`)
+2. Je joue `cowork_data.sql` (ou j'importe les CSV)
+3. Vérification : `SELECT COUNT(*)` sur chaque table comparé à la source
+
+### Étape 5 — Migrer les users Auth
+- Export des users via Auth Admin API (`GET /auth/v1/admin/users`) depuis Lovable Cloud
+- Import dans cowork via `POST /auth/v1/admin/users` (avec `password_hash` pour préserver les mots de passe)
+- **Attention** : les `id` UUID des users doivent être conservés (sinon `user_id` dans `profiles` / `user_roles` / `studies` cassent)
+
+### Étape 6 — Migrer le bucket `deliverables`
+- Liste tous les fichiers du bucket Lovable Cloud
+- Téléchargement → upload dans le bucket `deliverables` côté cowork (même nom, même path)
+- Recrée les policies du bucket à l'identique
+
+### Étape 7 — Basculer le front
+- Mise à jour de 3 valeurs dans `.env` :
+  - `VITE_SUPABASE_URL` → URL cowork
+  - `VITE_SUPABASE_PUBLISHABLE_KEY` → anon key cowork
+  - `VITE_SUPABASE_PROJECT_ID` → ref cowork
+- Recréation des secrets serveur (`SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GENERATION_WEBHOOK_SECRET`, `LOVABLE_API_KEY`) côté cowork
+- **Note importante** : si tu sors de Lovable Cloud, tu perds l'AI Gateway intégrée — il faut soit garder `LOVABLE_API_KEY` (si encore valide hors Lovable Cloud), soit basculer sur OpenAI/Anthropic direct
+
+### Étape 8 — Reconfigurer Auth côté cowork
+- Activer Google provider (mêmes Client ID / Secret OAuth Google)
+- Ajouter les Redirect URLs (preview + prod)
+- Désactiver les sign-ups anonymes
+- Vérifier la config email (confirm email on/off selon ton réglage actuel)
+
+### Étape 9 — Mettre à jour le webhook Cloud Run
+- Le webhook `/api/public/generation-webhook` ne change pas d'URL (c'est ton domaine front)
+- Mais le `SUPABASE_SERVICE_ROLE_KEY` que **Cloud Run** utilise pour écrire en direct (si c'est le cas) doit être remplacé par celui de cowork
+
+### Étape 10 — Tests de bout en bout
+- Login Google → OK
+- Création d'une étude → écriture en DB cowork
+- Trigger pipeline Stella → webhook → fichiers dans bucket cowork
+- Vérif RBAC (admin / owner_global / user) toujours fonctionnel
+
+### Étape 11 — Décommission
+- Une fois confirmé OK pendant quelques jours, désactiver Lovable Cloud
+- Garder un dump complet de la base actuelle en backup local (au cas où)
+
+---
+
+## Points d'attention
+
+- **Downtime** : prévoir une fenêtre courte (15-30 min) où on coupe les écritures côté front pour éviter une désync pendant le dump
+- **IDs des users** : on DOIT conserver les UUID auth, sinon toutes les FK `user_id` cassent
+- **Service role key Lovable Cloud** : non accessible — donc Option A de l'étape 3 nécessite `SUPABASE_DB_URL` (qui n'est pas non plus directement exposée). En pratique on partira sans doute sur **Option B (CSV)** + une approche hybride pour les users (script via API admin)
+- **Coût** : tu sors du free tier mutualisé Lovable Cloud → tu prends en charge le projet Supabase cowork (free tier suffit au démarrage)
+
+---
+
+## Ce dont j'ai besoin de toi pour démarrer
+
+1. Le projet **cowork** existe-t-il déjà sur supabase.com ? Si non → tu le crées (région EU recommandée pour la latence)
+2. Tu confirmes que tu veux bien **sortir de Lovable Cloud** (perte AI Gateway intégrée, gestion des clés côté toi)
+3. Tu me transmets les credentials de cowork quand tu es prêt (étape 1)
+
+Dis-moi quand tu veux qu'on commence et par quelle étape.
