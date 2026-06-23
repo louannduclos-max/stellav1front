@@ -71,6 +71,7 @@ export const Route = createFileRoute("/api/public/generation-webhook")({
         } else if (status === "done") {
           update.generation_completed_at = new Date().toISOString();
           update.generation_error_message = null;
+          update.status = "active";          // étude publiée dès que la génération réussit
           // TODO: add progress/eta_seconds columns to studies table via migration
           // update.progress = 100;
           // update.eta_seconds = 0;
