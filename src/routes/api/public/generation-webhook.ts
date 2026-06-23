@@ -71,8 +71,9 @@ export const Route = createFileRoute("/api/public/generation-webhook")({
         } else if (status === "done") {
           update.generation_completed_at = new Date().toISOString();
           update.generation_error_message = null;
-          update.progress = 100;
-          update.eta_seconds = 0;
+          // TODO: add progress/eta_seconds columns to studies table via migration
+          // update.progress = 100;
+          // update.eta_seconds = 0;
         } else {
           update.generation_completed_at = new Date().toISOString();
           update.generation_error_message =
@@ -82,34 +83,13 @@ export const Route = createFileRoute("/api/public/generation-webhook")({
         void cost_eur;
         void duration_sec;
 
-        // Real-progress fields — only set when explicitly provided by the
-        // backend so we never accidentally reset progress to 0.
-        const intField = (key: string): number | undefined => {
-          const raw = form.get(key);
-          if (raw == null) return undefined;
-          const n = parseInt(String(raw), 10);
-          return Number.isFinite(n) ? n : undefined;
-        };
-        const strField = (key: string, max = 500): string | undefined => {
-          const raw = form.get(key);
-          if (raw == null || typeof raw !== "string") return undefined;
-          const s = raw.trim();
-          return s ? s.slice(0, max) : undefined;
-        };
-        const progress = intField("progress");
-        if (progress !== undefined) {
-          update.progress = Math.max(0, Math.min(100, progress));
-        }
-        const eta = intField("eta_seconds");
-        if (eta !== undefined) update.eta_seconds = Math.max(0, eta);
-        const phase = intField("phase");
-        if (phase !== undefined) update.phase = Math.max(1, Math.min(99, phase));
-        const phaseTotal = intField("phase_total");
-        if (phaseTotal !== undefined) update.phase_total = Math.max(1, phaseTotal);
-        const progressLabel = strField("progress_label");
-        if (progressLabel) update.progress_label = progressLabel;
-        const phaseLabel = strField("phase_label");
-        if (phaseLabel) update.phase_label = phaseLabel;
+        // Real-progress fields — skipped until columns are added to studies table
+        // via migration: ALTER TABLE studies ADD COLUMN IF NOT EXISTS progress integer DEFAULT 0,
+        //   ADD COLUMN IF NOT EXISTS eta_seconds integer DEFAULT 0,
+        //   ADD COLUMN IF NOT EXISTS phase integer,
+        //   ADD COLUMN IF NOT EXISTS phase_total integer,
+        //   ADD COLUMN IF NOT EXISTS progress_label text,
+        //   ADD COLUMN IF NOT EXISTS phase_label text;
 
         const { error: upErr } = await supabaseAdmin
           .from("studies")
