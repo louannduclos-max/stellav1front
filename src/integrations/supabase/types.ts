@@ -549,6 +549,7 @@ export type Database = {
           generation_completed_at: string | null
           generation_error_message: string | null
           generation_started_at: string | null
+          eta_seconds: number | null
           generation_status: string
           hr_kpis: Json
           id: string
@@ -557,7 +558,12 @@ export type Database = {
           market_kpis: Json
           palette_key: string | null
           parent_study_id: string | null
+          phase: number | null
+          phase_label: string | null
+          phase_total: number | null
           postal_code: string | null
+          progress: number | null
+          progress_label: string | null
           reference_years: Json
           risks: Json
           road_axes: Json
@@ -587,6 +593,7 @@ export type Database = {
           generation_completed_at?: string | null
           generation_error_message?: string | null
           generation_started_at?: string | null
+          eta_seconds?: number | null
           generation_status?: string
           hr_kpis?: Json
           id?: string
@@ -595,7 +602,12 @@ export type Database = {
           market_kpis?: Json
           palette_key?: string | null
           parent_study_id?: string | null
+          phase?: number | null
+          phase_label?: string | null
+          phase_total?: number | null
           postal_code?: string | null
+          progress?: number | null
+          progress_label?: string | null
           reference_years?: Json
           risks?: Json
           road_axes?: Json
@@ -625,6 +637,7 @@ export type Database = {
           generation_completed_at?: string | null
           generation_error_message?: string | null
           generation_started_at?: string | null
+          eta_seconds?: number | null
           generation_status?: string
           hr_kpis?: Json
           id?: string
@@ -633,7 +646,12 @@ export type Database = {
           market_kpis?: Json
           palette_key?: string | null
           parent_study_id?: string | null
+          phase?: number | null
+          phase_label?: string | null
+          phase_total?: number | null
           postal_code?: string | null
+          progress?: number | null
+          progress_label?: string | null
           reference_years?: Json
           risks?: Json
           road_axes?: Json

@@ -263,12 +263,12 @@ function StudyDetail() {
 
         {isGenerating && (
           <StudyGenerationStage
-            progress={(study as { progress?: number | null }).progress ?? 0}
-            progressLabel={(study as { progress_label?: string | null }).progress_label ?? null}
-            etaSeconds={(study as { eta_seconds?: number | null }).eta_seconds ?? null}
-            phase={(study as { phase?: number | null }).phase ?? null}
-            phaseTotal={(study as { phase_total?: number | null }).phase_total ?? 5}
-            phaseLabel={(study as { phase_label?: string | null }).phase_label ?? null}
+            progress={study.progress ?? 0}
+            progressLabel={study.progress_label ?? null}
+            etaSeconds={study.eta_seconds ?? null}
+            phase={study.phase ?? null}
+            phaseTotal={study.phase_total ?? 5}
+            phaseLabel={study.phase_label ?? null}
           />
         )}
 

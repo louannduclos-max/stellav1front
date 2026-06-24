@@ -55,6 +55,24 @@ export const Route = createFileRoute("/api/public/generation-webhook")({
         const cost_eur = form.get("cost_eur");
         const duration_sec = form.get("duration_sec");
 
+        // Progress fields envoyés par progress_notifier.py
+        const intField = (name: string): number | null => {
+          const v = form.get(name);
+          if (v === null || v === "") return null;
+          const n = parseInt(String(v), 10);
+          return isNaN(n) ? null : n;
+        };
+        const strField = (name: string): string | null => {
+          const v = form.get(name);
+          return v !== null && String(v).trim() !== "" ? String(v).trim().slice(0, 500) : null;
+        };
+        const progress     = intField("progress");
+        const eta_seconds  = intField("eta_seconds");
+        const phase        = intField("phase");
+        const phase_total  = intField("phase_total");
+        const phase_label  = strField("phase_label");
+        const progress_label = strField("progress_label");
+
         if (!UUID_RE.test(study_id)) {
           return new Response("Invalid study_id", { status: 400 });
         }
@@ -64,6 +82,15 @@ export const Route = createFileRoute("/api/public/generation-webhook")({
         const status = normalizeStatus(rawStatus);
 
         const update: Record<string, unknown> = { generation_status: status };
+
+        // Champs de progression temps réel (colonnes ajoutées via migration)
+        if (progress !== null)       update.progress       = progress;
+        if (eta_seconds !== null)    update.eta_seconds    = eta_seconds;
+        if (phase !== null)          update.phase          = phase;
+        if (phase_total !== null)    update.phase_total    = phase_total;
+        if (phase_label !== null)    update.phase_label    = phase_label;
+        if (progress_label !== null) update.progress_label = progress_label;
+
         if (status === "processing") {
           update.generation_started_at = new Date().toISOString();
           update.generation_completed_at = null;
@@ -72,9 +99,8 @@ export const Route = createFileRoute("/api/public/generation-webhook")({
           update.generation_completed_at = new Date().toISOString();
           update.generation_error_message = null;
           update.status = "active";          // étude publiée dès que la génération réussit
-          // TODO: add progress/eta_seconds columns to studies table via migration
-          // update.progress = 100;
-          // update.eta_seconds = 0;
+          update.progress = 100;
+          update.eta_seconds = 0;
         } else {
           update.generation_completed_at = new Date().toISOString();
           update.generation_error_message =
@@ -83,14 +109,6 @@ export const Route = createFileRoute("/api/public/generation-webhook")({
         }
         void cost_eur;
         void duration_sec;
-
-        // Real-progress fields — skipped until columns are added to studies table
-        // via migration: ALTER TABLE studies ADD COLUMN IF NOT EXISTS progress integer DEFAULT 0,
-        //   ADD COLUMN IF NOT EXISTS eta_seconds integer DEFAULT 0,
-        //   ADD COLUMN IF NOT EXISTS phase integer,
-        //   ADD COLUMN IF NOT EXISTS phase_total integer,
-        //   ADD COLUMN IF NOT EXISTS progress_label text,
-        //   ADD COLUMN IF NOT EXISTS phase_label text;
 
         const { error: upErr } = await supabaseAdmin
           .from("studies")
