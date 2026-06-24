@@ -18,40 +18,54 @@ import { getCompany, listCompanyChildren } from "@/lib/companies.functions";
 import { listStudyCategories, listStudySubtypes } from "@/lib/study-types.functions";
 import { createStudyFromWizard } from "@/lib/wizard.functions";
 import type { WizardPayload } from "@/lib/wizard.functions";
+import { WIZARD_CATALOG } from "@/lib/wizard/catalog";
 
-const COUNTRIES = [
-  { code: "FR", name: "France", flag: "🇫🇷" },
-  { code: "BE", name: "Belgique", flag: "🇧🇪" },
-  { code: "CH", name: "Suisse", flag: "🇨🇭" },
-  { code: "LU", name: "Luxembourg", flag: "🇱🇺" },
-  { code: "IT", name: "Italie", flag: "🇮🇹" },
-  { code: "ES", name: "Espagne", flag: "🇪🇸" },
-  { code: "DE", name: "Allemagne", flag: "🇩🇪" },
-  { code: "PT", name: "Portugal", flag: "🇵🇹" },
-];
+const COUNTRIES = (WIZARD_CATALOG.pays as Array<any>)
+  .filter((p) => p.available)
+  .map((p) => ({ code: p.code as string, name: p.name as string, flag: p.flag as string }));
 
-const COMMUNE_TYPES = [
-  { code: "urbaine", label: "Urbaine" },
-  { code: "periurbaine", label: "Péri-urbaine" },
-  { code: "rurale", label: "Rurale" },
-  { code: "touristique", label: "Touristique" },
-];
+const COMMUNE_TYPES = (WIZARD_CATALOG.communeTypes as Array<any>).map((t) => ({
+  code: t.key as string,
+  label: t.label as string,
+  desc: t.desc as string | undefined,
+}));
 
-const SYNTHESIS_KPIS = [
-  { code: "pop_senior_65", label: "Population senior 65+" },
-  { code: "evol_demo_2020_2030", label: "Évolution démographique 2020-2030" },
-  { code: "densite_gerontologique", label: "Densité gérontologique" },
-  { code: "revenu_median_seniors", label: "Revenu médian seniors" },
-  { code: "taux_penetration_sap", label: "Taux de pénétration SAP" },
-];
+const ZONE_TYPES = (WIZARD_CATALOG.zoneTypes as Array<any>).map((t) => ({
+  code: t.key as string,
+  label: t.label as string,
+  desc: t.desc as string | undefined,
+  icon: t.icon as string | undefined,
+}));
 
-const COMPETITION_KPIS = [
-  { code: "nb_acteurs_sap", label: "Nombre d'acteurs SAP locaux" },
-  { code: "top5_parts_marche", label: "Top 5 parts de marché" },
-  { code: "volume_marche_local", label: "Volume marché local (€)" },
-  { code: "turnover_secteur", label: "Turnover du secteur" },
-  { code: "salaire_moyen_brut", label: "Salaire moyen brut" },
-];
+// KPI catalog grouped by category — synthesis = demo/demande/rh/mobilite, competition = concurrence/economie/regl/risques
+const SYNTHESIS_GROUPS = ["demographie", "demande", "rh", "mobilite"] as const;
+const COMPETITION_GROUPS = ["concurrence", "economie", "reglementaire", "risques"] as const;
+
+type CatalogKpi = { code: string; label: string; cat: string; src?: string };
+const ALL_KPIS: CatalogKpi[] = (WIZARD_CATALOG.kpis as Array<any>).map((k) => ({
+  code: k.key as string,
+  label: k.name as string,
+  cat: k.cat as string,
+  src: k.src as string | undefined,
+}));
+const KPI_CATEGORIES = (WIZARD_CATALOG.kpiCategories as Array<any>) as Array<{
+  key: string;
+  label: string;
+  icon: string;
+}>;
+const SYNTHESIS_KPIS = ALL_KPIS.filter((k) => SYNTHESIS_GROUPS.includes(k.cat as any));
+const COMPETITION_KPIS = ALL_KPIS.filter((k) => COMPETITION_GROUPS.includes(k.cat as any));
+
+// City suggestions (autocomplete) by country
+const CITIES_BY_COUNTRY: Record<string, string[]> = (() => {
+  const map: Record<string, Set<string>> = {};
+  for (const v of WIZARD_CATALOG.villes as Array<any>) {
+    const c = v.country as string;
+    if (!map[c]) map[c] = new Set();
+    map[c].add(v.ville as string);
+  }
+  return Object.fromEntries(Object.entries(map).map(([c, s]) => [c, Array.from(s).sort()]));
+})();
 
 const STEPS = [
   { n: 1, title: "Marque & étude" },
