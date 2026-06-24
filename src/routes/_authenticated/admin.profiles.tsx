@@ -2,7 +2,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listProfiles, updateProfileRole, getCurrentProfile } from "@/lib/profiles.functions";
-import { AppShell } from "@/components/app-shell";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -41,13 +40,13 @@ function AdminProfilesPage() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
   });
 
-  if (meQ.isLoading) return <AppShell><div className="p-6">Chargement…</div></AppShell>;
+  if (meQ.isLoading) return <div className="p-6">Chargement…</div>;
   if (meQ.data && meQ.data.role !== "admin") {
     throw redirect({ to: "/app/studies" });
   }
 
   return (
-    <AppShell>
+    <>
       <div className="p-6 max-w-5xl">
         <h1 className="text-2xl font-semibold mb-1">Profils & rôles</h1>
         <p className="text-sm text-muted-foreground mb-6">
@@ -120,6 +119,6 @@ function AdminProfilesPage() {
         onOpenChange={(o) => !o && setPermsTarget(null)}
         user={permsTarget}
       />
-    </AppShell>
+    </>
   );
 }
