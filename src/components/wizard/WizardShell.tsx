@@ -792,28 +792,52 @@ function Step5({
   dispatch: React.Dispatch<Action>;
   primary: string;
 }) {
+  const synthCats = KPI_CATEGORIES.filter((c) => SYNTHESIS_GROUPS.includes(c.key as any));
+  const compCats = KPI_CATEGORIES.filter((c) => COMPETITION_GROUPS.includes(c.key as any));
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold">KPIs à inclure dans l'étude</h2>
         <p className="text-sm text-muted-foreground">
-          Choisissez les indicateurs à analyser. Tous facultatifs.
+          Catalogue complet ({ALL_KPIS.length} KPIs). Tous facultatifs.
         </p>
       </div>
-      <KpiGroup
-        title="Synthèse / démographie"
-        options={SYNTHESIS_KPIS}
-        selected={data.synthesis_kpis}
-        onToggle={(next) => dispatch({ type: "patch", patch: { synthesis_kpis: next } })}
-        primary={primary}
-      />
-      <KpiGroup
-        title="Concurrence & marché"
-        options={COMPETITION_KPIS}
-        selected={data.competition_kpis}
-        onToggle={(next) => dispatch({ type: "patch", patch: { competition_kpis: next } })}
-        primary={primary}
-      />
+      <div className="space-y-5">
+        {synthCats.map((cat) => {
+          const opts = SYNTHESIS_KPIS.filter((k) => k.cat === cat.key).map((k) => ({
+            code: k.code,
+            label: k.label,
+          }));
+          if (opts.length === 0) return null;
+          return (
+            <KpiGroup
+              key={cat.key}
+              title={`${cat.icon} ${cat.label}`}
+              options={opts}
+              selected={data.synthesis_kpis}
+              onToggle={(next) => dispatch({ type: "patch", patch: { synthesis_kpis: next } })}
+              primary={primary}
+            />
+          );
+        })}
+        {compCats.map((cat) => {
+          const opts = COMPETITION_KPIS.filter((k) => k.cat === cat.key).map((k) => ({
+            code: k.code,
+            label: k.label,
+          }));
+          if (opts.length === 0) return null;
+          return (
+            <KpiGroup
+              key={cat.key}
+              title={`${cat.icon} ${cat.label}`}
+              options={opts}
+              selected={data.competition_kpis}
+              onToggle={(next) => dispatch({ type: "patch", patch: { competition_kpis: next } })}
+              primary={primary}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
