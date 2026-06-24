@@ -54,6 +54,29 @@ function styleFromObject(style?: Record<string, unknown>): React.CSSProperties {
 }
 
 function ChildRenderer({ child }: { child: StellaSlideChild }) {
+  if (child.role === "badge") {
+    return (
+      <div
+        style={{
+          display: "inline-block",
+          marginTop: "4px",
+          padding: "2px 7px",
+          fontSize: "10px",
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          color: "var(--text-muted)",
+          border: "1px solid currentColor",
+          borderRadius: "4px",
+          opacity: 0.6,
+          lineHeight: 1.6,
+        }}
+      >
+        {child.text ?? "estimation"}
+      </div>
+    );
+  }
+
   const style: React.CSSProperties = {
     display: "block",
     width: "100%",
@@ -162,29 +185,4 @@ function ObjectRenderer({ obj }: { obj: StellaSlideObject }) {
           {obj.text}
         </div>
       ) : null}
-      {(obj.children || []).map((child, idx) => (
-        <ChildRenderer key={idx} child={child} />
-      ))}
-    </div>
-  );
-}
-
-export default function StellaSlide5_0({
-  slide,
-  debug = false,
-}: {
-  slide: StellaSlide5_0Type;
-  debug?: boolean;
-}) {
-  return (
-    <div
-      className={`stella-5-0-slide-container${debug ? " stella-5-0-debug-on" : ""}`}
-      data-background={slide.background}
-      data-slide-id={slide.slide_id}
-    >
-      {slide.objects.map((obj) => (
-        <ObjectRenderer key={obj.id} obj={obj} />
-      ))}
-    </div>
-  );
-}
+      {(obj.childre
