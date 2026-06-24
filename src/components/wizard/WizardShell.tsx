@@ -529,10 +529,16 @@ function Step2({
           <Label htmlFor="city">Ville</Label>
           <Input
             id="city"
+            list="wizard-city-suggestions"
             value={data.city_name}
             onChange={(e) => dispatch({ type: "patch", patch: { city_name: e.target.value } })}
             placeholder="Ex: Bordeaux"
           />
+          <datalist id="wizard-city-suggestions">
+            {(CITIES_BY_COUNTRY[data.country_code] ?? []).map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
         </div>
         <div>
           <Label htmlFor="postal">Code postal (optionnel)</Label>
@@ -566,6 +572,7 @@ function Step2({
                     },
                   })
                 }
+                title={t.desc}
                 className={cn(
                   "px-3 py-1.5 rounded-full border text-sm transition",
                   selected
@@ -582,7 +589,47 @@ function Step2({
       </div>
 
       <div>
-        <Label htmlFor="zone">Zone de focus (optionnel)</Label>
+        <Label className="mb-2 block">Périmètre géographique</Label>
+        <div className="flex flex-wrap gap-2">
+          {ZONE_TYPES.map((z) => {
+            const selected = (data.zone_focus ?? "")
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+              .includes(z.code);
+            return (
+              <button
+                key={z.code}
+                type="button"
+                onClick={() => {
+                  const current = (data.zone_focus ?? "")
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+                  const next = selected
+                    ? current.filter((x) => x !== z.code)
+                    : [...current, z.code];
+                  dispatch({ type: "patch", patch: { zone_focus: next.join(",") } });
+                }}
+                title={z.desc}
+                className={cn(
+                  "px-3 py-1.5 rounded-md border text-sm transition",
+                  selected
+                    ? "text-white border-transparent"
+                    : "bg-card hover:bg-accent border-border",
+                )}
+                style={selected ? { backgroundColor: primary } : undefined}
+              >
+                {z.icon && <span className="mr-1">{z.icon}</span>}
+                {z.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="zone">Précisions de zone (optionnel)</Label>
         <Input
           id="zone"
           value={data.zone_focus ?? ""}
