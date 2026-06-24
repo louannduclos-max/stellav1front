@@ -18,40 +18,54 @@ import { getCompany, listCompanyChildren } from "@/lib/companies.functions";
 import { listStudyCategories, listStudySubtypes } from "@/lib/study-types.functions";
 import { createStudyFromWizard } from "@/lib/wizard.functions";
 import type { WizardPayload } from "@/lib/wizard.functions";
+import { WIZARD_CATALOG } from "@/lib/wizard/catalog";
 
-const COUNTRIES = [
-  { code: "FR", name: "France", flag: "🇫🇷" },
-  { code: "BE", name: "Belgique", flag: "🇧🇪" },
-  { code: "CH", name: "Suisse", flag: "🇨🇭" },
-  { code: "LU", name: "Luxembourg", flag: "🇱🇺" },
-  { code: "IT", name: "Italie", flag: "🇮🇹" },
-  { code: "ES", name: "Espagne", flag: "🇪🇸" },
-  { code: "DE", name: "Allemagne", flag: "🇩🇪" },
-  { code: "PT", name: "Portugal", flag: "🇵🇹" },
-];
+const COUNTRIES = (WIZARD_CATALOG.pays as Array<any>)
+  .filter((p) => p.available)
+  .map((p) => ({ code: p.code as string, name: p.name as string, flag: p.flag as string }));
 
-const COMMUNE_TYPES = [
-  { code: "urbaine", label: "Urbaine" },
-  { code: "periurbaine", label: "Péri-urbaine" },
-  { code: "rurale", label: "Rurale" },
-  { code: "touristique", label: "Touristique" },
-];
+const COMMUNE_TYPES = (WIZARD_CATALOG.communeTypes as Array<any>).map((t) => ({
+  code: t.key as string,
+  label: t.label as string,
+  desc: t.desc as string | undefined,
+}));
 
-const SYNTHESIS_KPIS = [
-  { code: "pop_senior_65", label: "Population senior 65+" },
-  { code: "evol_demo_2020_2030", label: "Évolution démographique 2020-2030" },
-  { code: "densite_gerontologique", label: "Densité gérontologique" },
-  { code: "revenu_median_seniors", label: "Revenu médian seniors" },
-  { code: "taux_penetration_sap", label: "Taux de pénétration SAP" },
-];
+const ZONE_TYPES = (WIZARD_CATALOG.zoneTypes as Array<any>).map((t) => ({
+  code: t.key as string,
+  label: t.label as string,
+  desc: t.desc as string | undefined,
+  icon: t.icon as string | undefined,
+}));
 
-const COMPETITION_KPIS = [
-  { code: "nb_acteurs_sap", label: "Nombre d'acteurs SAP locaux" },
-  { code: "top5_parts_marche", label: "Top 5 parts de marché" },
-  { code: "volume_marche_local", label: "Volume marché local (€)" },
-  { code: "turnover_secteur", label: "Turnover du secteur" },
-  { code: "salaire_moyen_brut", label: "Salaire moyen brut" },
-];
+// KPI catalog grouped by category — synthesis = demo/demande/rh/mobilite, competition = concurrence/economie/regl/risques
+const SYNTHESIS_GROUPS = ["demographie", "demande", "rh", "mobilite"] as const;
+const COMPETITION_GROUPS = ["concurrence", "economie", "reglementaire", "risques"] as const;
+
+type CatalogKpi = { code: string; label: string; cat: string; src?: string };
+const ALL_KPIS: CatalogKpi[] = (WIZARD_CATALOG.kpis as Array<any>).map((k) => ({
+  code: k.key as string,
+  label: k.name as string,
+  cat: k.cat as string,
+  src: k.src as string | undefined,
+}));
+const KPI_CATEGORIES = (WIZARD_CATALOG.kpiCategories as Array<any>) as Array<{
+  key: string;
+  label: string;
+  icon: string;
+}>;
+const SYNTHESIS_KPIS = ALL_KPIS.filter((k) => SYNTHESIS_GROUPS.includes(k.cat as any));
+const COMPETITION_KPIS = ALL_KPIS.filter((k) => COMPETITION_GROUPS.includes(k.cat as any));
+
+// City suggestions (autocomplete) by country
+const CITIES_BY_COUNTRY: Record<string, string[]> = (() => {
+  const map: Record<string, Set<string>> = {};
+  for (const v of WIZARD_CATALOG.villes as Array<any>) {
+    const c = v.country as string;
+    if (!map[c]) map[c] = new Set();
+    map[c].add(v.ville as string);
+  }
+  return Object.fromEntries(Object.entries(map).map(([c, s]) => [c, Array.from(s).sort()]));
+})();
 
 const STEPS = [
   { n: 1, title: "Marque & étude" },
@@ -515,10 +529,16 @@ function Step2({
           <Label htmlFor="city">Ville</Label>
           <Input
             id="city"
+            list="wizard-city-suggestions"
             value={data.city_name}
             onChange={(e) => dispatch({ type: "patch", patch: { city_name: e.target.value } })}
             placeholder="Ex: Bordeaux"
           />
+          <datalist id="wizard-city-suggestions">
+            {(CITIES_BY_COUNTRY[data.country_code] ?? []).map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
         </div>
         <div>
           <Label htmlFor="postal">Code postal (optionnel)</Label>
@@ -552,6 +572,7 @@ function Step2({
                     },
                   })
                 }
+                title={t.desc}
                 className={cn(
                   "px-3 py-1.5 rounded-full border text-sm transition",
                   selected
@@ -568,7 +589,47 @@ function Step2({
       </div>
 
       <div>
-        <Label htmlFor="zone">Zone de focus (optionnel)</Label>
+        <Label className="mb-2 block">Périmètre géographique</Label>
+        <div className="flex flex-wrap gap-2">
+          {ZONE_TYPES.map((z) => {
+            const selected = (data.zone_focus ?? "")
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+              .includes(z.code);
+            return (
+              <button
+                key={z.code}
+                type="button"
+                onClick={() => {
+                  const current = (data.zone_focus ?? "")
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+                  const next = selected
+                    ? current.filter((x) => x !== z.code)
+                    : [...current, z.code];
+                  dispatch({ type: "patch", patch: { zone_focus: next.join(",") } });
+                }}
+                title={z.desc}
+                className={cn(
+                  "px-3 py-1.5 rounded-md border text-sm transition",
+                  selected
+                    ? "text-white border-transparent"
+                    : "bg-card hover:bg-accent border-border",
+                )}
+                style={selected ? { backgroundColor: primary } : undefined}
+              >
+                {z.icon && <span className="mr-1">{z.icon}</span>}
+                {z.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="zone">Précisions de zone (optionnel)</Label>
         <Input
           id="zone"
           value={data.zone_focus ?? ""}
@@ -731,28 +792,52 @@ function Step5({
   dispatch: React.Dispatch<Action>;
   primary: string;
 }) {
+  const synthCats = KPI_CATEGORIES.filter((c) => SYNTHESIS_GROUPS.includes(c.key as any));
+  const compCats = KPI_CATEGORIES.filter((c) => COMPETITION_GROUPS.includes(c.key as any));
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold">KPIs à inclure dans l'étude</h2>
         <p className="text-sm text-muted-foreground">
-          Choisissez les indicateurs à analyser. Tous facultatifs.
+          Catalogue complet ({ALL_KPIS.length} KPIs). Tous facultatifs.
         </p>
       </div>
-      <KpiGroup
-        title="Synthèse / démographie"
-        options={SYNTHESIS_KPIS}
-        selected={data.synthesis_kpis}
-        onToggle={(next) => dispatch({ type: "patch", patch: { synthesis_kpis: next } })}
-        primary={primary}
-      />
-      <KpiGroup
-        title="Concurrence & marché"
-        options={COMPETITION_KPIS}
-        selected={data.competition_kpis}
-        onToggle={(next) => dispatch({ type: "patch", patch: { competition_kpis: next } })}
-        primary={primary}
-      />
+      <div className="space-y-5">
+        {synthCats.map((cat) => {
+          const opts = SYNTHESIS_KPIS.filter((k) => k.cat === cat.key).map((k) => ({
+            code: k.code,
+            label: k.label,
+          }));
+          if (opts.length === 0) return null;
+          return (
+            <KpiGroup
+              key={cat.key}
+              title={`${cat.icon} ${cat.label}`}
+              options={opts}
+              selected={data.synthesis_kpis}
+              onToggle={(next) => dispatch({ type: "patch", patch: { synthesis_kpis: next } })}
+              primary={primary}
+            />
+          );
+        })}
+        {compCats.map((cat) => {
+          const opts = COMPETITION_KPIS.filter((k) => k.cat === cat.key).map((k) => ({
+            code: k.code,
+            label: k.label,
+          }));
+          if (opts.length === 0) return null;
+          return (
+            <KpiGroup
+              key={cat.key}
+              title={`${cat.icon} ${cat.label}`}
+              options={opts}
+              selected={data.competition_kpis}
+              onToggle={(next) => dispatch({ type: "patch", patch: { competition_kpis: next } })}
+              primary={primary}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
