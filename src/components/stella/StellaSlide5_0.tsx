@@ -185,4 +185,36 @@ function ObjectRenderer({ obj }: { obj: StellaSlideObject }) {
           {obj.text}
         </div>
       ) : null}
-      {(obj.childre
+      {(obj.children ?? []).map((child, idx) => (
+        <ChildRenderer key={idx} child={child} />
+      ))}
+    </div>
+  );
+}
+
+export default function StellaSlide5_0({
+  slide,
+  debug,
+}: {
+  slide: StellaSlide5_0Type;
+  debug?: boolean;
+}) {
+  const { canvas, objects, background } = slide;
+  return (
+    <div
+      className={`stella-5-0-slide stella-5-0-bg-${background}`}
+      data-slide-id={slide.slide_id}
+      data-debug={debug ? "true" : undefined}
+      style={{
+        position: "relative",
+        width: `${canvas.width}px`,
+        height: `${canvas.height}px`,
+        overflow: "hidden",
+      }}
+    >
+      {objects.map((obj) => (
+        <ObjectRenderer key={obj.id} obj={obj} />
+      ))}
+    </div>
+  );
+}
