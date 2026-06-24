@@ -354,7 +354,7 @@ function StellaInputForm({ baseUrl, onStudyReady }: FormProps) {
                 />
               )}
               Profil chargé · {selectedCompany.display_name}
-              {selectedCompany.presets?.default_kpis && Array.isArray(selectedCompany.presets.default_kpis) && (
+              {Array.isArray(selectedCompany.presets?.default_kpis) && (
                 <span>· {(selectedCompany.presets.default_kpis as unknown[]).length} KPIs</span>
               )}
             </div>

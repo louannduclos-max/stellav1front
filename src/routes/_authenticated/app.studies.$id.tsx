@@ -262,13 +262,14 @@ function StudyDetail() {
         />
 
         {isGenerating && (
+          // Progress columns not yet present in DB; cast until migration adds them.
           <StudyGenerationStage
-            progress={study.progress ?? 0}
-            progressLabel={study.progress_label ?? null}
-            etaSeconds={study.eta_seconds ?? null}
-            phase={study.phase ?? null}
-            phaseTotal={study.phase_total ?? 5}
-            phaseLabel={study.phase_label ?? null}
+            progress={(study as any).progress ?? 0}
+            progressLabel={(study as any).progress_label ?? null}
+            etaSeconds={(study as any).eta_seconds ?? null}
+            phase={(study as any).phase ?? null}
+            phaseTotal={(study as any).phase_total ?? 5}
+            phaseLabel={(study as any).phase_label ?? null}
           />
         )}
 
