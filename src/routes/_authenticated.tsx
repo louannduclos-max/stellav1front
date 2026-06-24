@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { supabaseBrowser } from "@/lib/supabase-browser";
+import { AppShell } from "@/components/app-shell";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
@@ -37,5 +38,9 @@ function AuthenticatedLayout() {
       mounted = false;
     };
   }, [router]);
-  return <Outlet />;
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  );
 }
