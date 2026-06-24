@@ -13,7 +13,6 @@ import {
 } from "@/lib/companies.functions";
 import { listMasters } from "@/lib/masters.functions";
 import { getCurrentProfile } from "@/lib/profiles.functions";
-import { AppShell } from "@/components/app-shell";
 import { BrandPreview } from "@/components/brand-preview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,11 +119,11 @@ function AdminCompaniesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
-  if (meQ.isLoading) return <AppShell><div className="p-6">Chargement…</div></AppShell>;
+  if (meQ.isLoading) return <div className="p-6">Chargement…</div>;
   if (meQ.data && meQ.data.role !== "admin") throw redirect({ to: "/app/studies" });
 
   return (
-    <AppShell>
+    <>
       <div className="p-6 max-w-6xl space-y-6">
         <header className="flex items-center justify-between">
           <div>
@@ -194,7 +193,7 @@ function AdminCompaniesPage() {
           onClose={() => { setCreating(false); setEditingId(null); }}
         />
       )}
-    </AppShell>
+    </>
   );
 }
 

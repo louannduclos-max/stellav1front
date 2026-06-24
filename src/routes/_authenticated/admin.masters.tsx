@@ -4,7 +4,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { listMasters, upsertMaster, deleteMaster } from "@/lib/masters.functions";
 import { getCurrentProfile } from "@/lib/profiles.functions";
-import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,13 +39,13 @@ function AdminMastersPage() {
     enabled: meQ.data?.role === "admin",
   });
 
-  if (meQ.isLoading) return <AppShell><div className="p-6">Chargement…</div></AppShell>;
+  if (meQ.isLoading) return <div className="p-6">Chargement…</div>;
   if (meQ.data && meQ.data.role !== "admin") {
     throw redirect({ to: "/app/studies" });
   }
 
   return (
-    <AppShell>
+    <>
       <div className="p-6 max-w-5xl space-y-8">
         <header>
           <h1 className="text-2xl font-semibold">Tables référentielles</h1>
@@ -65,7 +64,7 @@ function AdminMastersPage() {
           />
         ))}
       </div>
-    </AppShell>
+    </>
   );
 }
 

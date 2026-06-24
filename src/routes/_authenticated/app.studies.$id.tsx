@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { getStudy, createStudyVersion } from "@/lib/studies.functions";
 import { listDeliverables } from "@/lib/deliverables.functions";
 import { generateStudy } from "@/lib/generate-study.functions";
-import { AppShell, GenerationStatusBadge } from "@/components/app-shell";
+import { GenerationStatusBadge } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { toast } from "sonner";
@@ -174,14 +174,14 @@ function StudyDetail() {
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  if (studyQ.isLoading) return <AppShell><div className="p-6">Chargement…</div></AppShell>;
+  if (studyQ.isLoading) return <div className="p-6">Chargement…</div>;
   if (studyQ.error || !studyQ.data) {
     return (
-      <AppShell>
+      <>
         <div className="p-6 text-destructive">
           {studyQ.error instanceof Error ? studyQ.error.message : "Étude introuvable"}
         </div>
-      </AppShell>
+      </>
     );
   }
 
@@ -212,7 +212,7 @@ function StudyDetail() {
   }
 
   return (
-    <AppShell>
+    <>
       <div className="p-6 max-w-5xl space-y-6">
         <div className="flex items-start justify-between">
           <div>
@@ -414,6 +414,6 @@ function StudyDetail() {
           </ul>
         </section>
       </div>
-    </AppShell>
+    </>
   );
 }

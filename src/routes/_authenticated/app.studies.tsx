@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 import { listStudies } from "@/lib/studies.functions";
-import { AppShell, GenerationStatusBadge } from "@/components/app-shell";
+import { GenerationStatusBadge } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { StudyCategoryPicker, type PickedSubtype } from "@/components/study-category-picker";
@@ -64,7 +64,7 @@ function StudiesPage() {
   }
 
   return (
-    <AppShell>
+    <>
       <div className="p-6 max-w-6xl">
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
@@ -149,6 +149,6 @@ function StudiesPage() {
         onClose={() => setPicked(null)}
         onPick={onCompanyPicked}
       />
-    </AppShell>
+    </>
   );
 }

@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { listStudiesAdmin, listStudyFilters } from "@/lib/studies.functions";
 import { getCurrentProfile } from "@/lib/profiles.functions";
-import { AppShell, GenerationStatusBadge } from "@/components/app-shell";
+import { GenerationStatusBadge } from "@/components/app-shell";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -64,7 +64,7 @@ function AdminStudiesPage() {
     enabled: meQ.data?.role === "admin",
   });
 
-  if (meQ.isLoading) return <AppShell><div className="p-6">Chargement…</div></AppShell>;
+  if (meQ.isLoading) return <div className="p-6">Chargement…</div>;
   if (meQ.data && meQ.data.role !== "admin") throw redirect({ to: "/app/studies" });
 
   const total = listQ.data?.total ?? 0;
@@ -75,7 +75,7 @@ function AdminStudiesPage() {
   };
 
   return (
-    <AppShell>
+    <>
       <div className="p-6 space-y-4">
         <header className="flex items-end justify-between">
           <div>
@@ -173,6 +173,6 @@ function AdminStudiesPage() {
           </div>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }

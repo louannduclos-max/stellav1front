@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getAdminDashboard } from "@/lib/dashboard.functions";
 import { getCurrentProfile } from "@/lib/profiles.functions";
 import { cancelStudyGeneration } from "@/lib/studies.functions";
-import { AppShell, GenerationStatusBadge } from "@/components/app-shell";
+import { GenerationStatusBadge } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,11 +77,11 @@ function AdminDashboardPage() {
     enabled: !!meQ.data,
   });
 
-  if (meQ.isLoading) return <AppShell><div className="p-6">Chargement…</div></AppShell>;
+  if (meQ.isLoading) return <div className="p-6">Chargement…</div>;
   if (meQ.data && meQ.data.role !== "admin") throw redirect({ to: "/app/studies" });
 
   return (
-    <AppShell>
+    <>
       <div className="p-6 space-y-6">
         <header>
           <h1 className="text-2xl font-semibold">Dashboard</h1>
@@ -271,6 +271,6 @@ function AdminDashboardPage() {
           </>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

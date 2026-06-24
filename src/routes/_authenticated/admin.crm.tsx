@@ -14,7 +14,6 @@ import {
 import { getCurrentProfile } from "@/lib/profiles.functions";
 import { listCompanies } from "@/lib/companies.functions";
 import { listStudies } from "@/lib/studies.functions";
-import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -126,7 +125,7 @@ function CrmPage() {
     return rows;
   }, [logsQ.data, category, severity, status, search]);
 
-  if (meQ.isLoading) return <AppShell><div className="p-6">Chargement…</div></AppShell>;
+  if (meQ.isLoading) return <div className="p-6">Chargement…</div>;
   if (meQ.data && meQ.data.role !== "admin" && meQ.data.role !== "consultant") {
     throw redirect({ to: "/app/studies" });
   }
@@ -137,7 +136,7 @@ function CrmPage() {
   const resolved = filtered.filter((r) => r.status === "resolu").length;
 
   return (
-    <AppShell>
+    <>
       <div className="p-6 space-y-4">
         <header className="flex items-center justify-between">
           <div>
@@ -281,7 +280,7 @@ function CrmPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppShell>
+    </>
   );
 }
 
