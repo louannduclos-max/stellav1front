@@ -1519,8 +1519,11 @@ function Step5() {
 
     const token = readSupabaseToken();
     if (!token) {
-      alert('Session expirée. Reconnectez-vous.');
-      if (window.top) window.top.location.href = '/login';
+      // Redirige vers /login avec retour automatique au wizard après connexion
+      if (window.top) {
+        const here = encodeURIComponent(window.location.pathname + window.location.hash);
+        window.top.location.href = '/login?redirect=' + here;
+      }
       setSubmitting(false);
       return;
     }
@@ -1736,8 +1739,10 @@ function Step6Recap() {
       }
     } catch (_) {}
     if (!token) {
-      setErr('Session expirée. Reconnectez-vous.');
-      if (window.top) window.top.location.href = '/login';
+      if (window.top) {
+        const here = encodeURIComponent(window.location.pathname + window.location.hash);
+        window.top.location.href = '/login?redirect=' + here;
+      }
       setSubmitting(false);
       return;
     }

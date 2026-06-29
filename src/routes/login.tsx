@@ -39,6 +39,11 @@ function LoginPage() {
   const goAfterLogin = async () => {
     const target = safeRedirect(redirectTo);
     if (target) {
+      // Les pages statiques /stella/ ne sont pas des routes TanStack — navigation classique
+      if (target.startsWith("/stella/")) {
+        window.location.href = target;
+        return;
+      }
       navigate({ to: target, replace: true });
       return;
     }
