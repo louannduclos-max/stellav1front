@@ -64,17 +64,29 @@ function LoginPage() {
 
   useEffect(() => {
     let mounted = true;
+
+    // Écouter les changements d'état auth — indispensable pour le callback OAuth
+    // (Supabase traite le #access_token du fragment de manière asynchrone après montage)
+    const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      if (session) {
+        await goAfterLogin();
+      }
+    });
+
+    // Vérifier aussi une session déjà existante (reload page, session persistée)
     supabaseBrowser.auth.getSession().then(async ({ data }) => {
       if (!mounted) return;
       if (data.session) {
-        if (!mounted) return;
         await goAfterLogin();
       } else {
         setSessionChecked(true);
       }
     });
+
     return () => {
       mounted = false;
+      subscription.unsubscribe();
     };
   }, [navigate, redirectTo]);
 
