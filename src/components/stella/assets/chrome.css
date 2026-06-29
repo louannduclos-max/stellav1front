@@ -6,6 +6,26 @@
   --text-primary: #1E293B;
   --text-muted: #64748B;
   --stella-font: Inter, "IBM Plex Sans", Arial, sans-serif;
+
+  /* Stella design tokens (Sprint 2) */
+  --stella-primary: var(--primary-color);
+  --stella-primary-dark: #003D7A;
+  --stella-text: var(--text-primary);
+  --stella-text-muted: var(--text-muted);
+  --stella-accent: #00CC66;
+  --stella-alert: #FF3333;
+  --stella-warn: #FF9900;
+  --stella-highlight: #E6F2FF;
+  --stella-grey-light: #F0F0F0;
+  --stella-bg-light: var(--bg-light);
+}
+
+/* Brand override : Interdomicilio */
+[data-brand="interdomicilio"] {
+  --primary-color: #0095D9;
+  --stella-primary: #0095D9;
+  --stella-primary-dark: #00608A;
+  --stella-accent: #FFCC00;
 }
 
 .stella-5-0-viewport {

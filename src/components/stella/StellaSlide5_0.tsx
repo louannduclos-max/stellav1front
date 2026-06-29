@@ -29,13 +29,7 @@ const STYLE_KEY_MAP: Record<string, keyof React.CSSProperties> = {
   z_index: "zIndex",
 };
 
-const PX_KEYS = new Set([
-  "fontSize",
-  "borderRadius",
-  "padding",
-  "margin",
-  "gap",
-]);
+const PX_KEYS = new Set(["fontSize", "borderRadius", "padding", "margin", "gap"]);
 
 function styleFromObject(style?: Record<string, unknown>): React.CSSProperties {
   if (!style) return {};
@@ -53,6 +47,8 @@ function styleFromObject(style?: Record<string, unknown>): React.CSSProperties {
   return out;
 }
 
+// ─── ChildRenderer ────────────────────────────────────────────────────────────
+
 function ChildRenderer({ child }: { child: StellaSlideChild }) {
   if (child.role === "badge") {
     return (
@@ -65,11 +61,11 @@ function ChildRenderer({ child }: { child: StellaSlideChild }) {
           fontWeight: 600,
           textTransform: "uppercase",
           letterSpacing: "0.08em",
-          color: "var(--text-muted)",
+          color: "var(--stella-warn, #FF9900)",
           border: "1px solid currentColor",
-          borderRadius: "4px",
-          opacity: 0.6,
+          borderRadius: "3px",
           lineHeight: 1.6,
+          alignSelf: "flex-start",
         }}
       >
         {child.text ?? "estimation"}
@@ -88,126 +84,99 @@ function ChildRenderer({ child }: { child: StellaSlideChild }) {
   return <div style={style}>{child.text ?? FALLBACK}</div>;
 }
 
-function ObjectRenderer({ obj }: { obj: StellaSlideObject }) {
-  const userStyle = styleFromObject(obj.style);
-  const isShapeOnly =
-    obj.data_object_type === "shape" && (obj.children?.length || 0) === 0 && !obj.text;
+// ─── KPI Card ────────────────────────────────────────────────────────────────
 
-  if (obj.data_object_type === "chart") {
-    return (
-      <div
-        className="stella-5-0-object stella-5-0-chart-placeholder"
-        data-object="true"
-        data-object-type="chart"
-        data-object-id={obj.id}
-        data-chart-id={obj.chart_id || ""}
-        style={{
-          position: "absolute",
-          left: `${obj.left}px`,
-          top: `${obj.top}px`,
-          width: `${obj.width}px`,
-          height: `${obj.height}px`,
-          boxSizing: "border-box",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          gap: "12px",
-          background: "var(--bg-light)",
-          border: "2px dashed rgba(26, 91, 160, 0.18)",
-          borderRadius: "8px",
-          color: "var(--text-muted)",
-          fontFamily: "var(--stella-font, Inter, Arial, sans-serif)",
-          fontSize: "14px",
-          overflow: "hidden",
-        }}
-      >
-        <span style={{ fontSize: "32px", opacity: 0.4 }}>📊</span>
-        <span style={{ opacity: 0.5 }}>{obj.chart_id || "chart"}</span>
-      </div>
-    );
-  }
-
-
-  const baseStyle: React.CSSProperties = {
-    position: "absolute",
-    left: `${obj.left}px`,
-    top: `${obj.top}px`,
-    width: `${obj.width}px`,
-    height: `${obj.height}px`,
-    boxSizing: "border-box",
-    overflow: "hidden",
-    overflowWrap: "break-word",
-    wordBreak: "break-word",
-    lineHeight: 1.3,
-    // Default flex layout so KPI cards / textboxes center their content nicely.
-    display: isShapeOnly ? "block" : (userStyle.display as React.CSSProperties["display"]) || "flex",
-    flexDirection:
-      (userStyle.flexDirection as React.CSSProperties["flexDirection"]) || "column",
-    justifyContent:
-      (userStyle.justifyContent as React.CSSProperties["justifyContent"]) || "center",
-    alignItems:
-      (userStyle.alignItems as React.CSSProperties["alignItems"]) || "flex-start",
-    gap: (userStyle.gap as React.CSSProperties["gap"]) ?? 8,
-    padding: (userStyle.padding as React.CSSProperties["padding"]) ?? 16,
-    ...userStyle,
-  };
-
-  if (isShapeOnly) {
-    return (
-      <div
-        className="stella-5-0-object"
-        data-object="true"
-        data-object-type={obj.data_object_type}
-        data-object-id={obj.id}
-        style={{ ...baseStyle, padding: 0 }}
-      />
-    );
-  }
+function KpiCardRenderer({ obj, baseStyle }: { obj: StellaSlideObject; baseStyle: React.CSSProperties }) {
+  const children = obj.children || [];
+  const label = children.find(c => c.role === "label");
+  const value = children.find(c => c.role === "value");
+  const trend = children.find(c => c.role === "trend");
+  const badge = children.find(c => c.role === "badge");
 
   return (
     <div
       className="stella-5-0-object"
-      data-object="true"
-      data-object-type={obj.data_object_type}
+      data-object-type="kpi_card"
       data-object-id={obj.id}
-      style={baseStyle}
+      style={{
+        ...baseStyle,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        gap: "4px",
+        padding: "20px 24px",
+        ...styleFromObject(obj.style),
+      }}
     >
-      {obj.text ? (
-        <div
-          style={{
-            display: "block",
-            width: "100%",
-            overflowWrap: "break-word",
-            wordBreak: "break-word",
-          }}
-        >
-          {obj.text}
+      {label && (
+        <div style={{
+          fontSize: "12px", fontWeight: 600, letterSpacing: "0.06em",
+          textTransform: "uppercase", color: "var(--text-muted, #64748B)", lineHeight: 1.2,
+          ...styleFromObject(label.style),
+        }}>
+          {label.text}
         </div>
-      ) : null}
-      {(obj.children || []).map((child, idx) => (
-        <ChildRenderer key={idx} child={child} />
-      ))}
+      )}
+      {value && (
+        <div style={{
+          fontSize: "42px", fontWeight: 800, lineHeight: 1.1,
+          color: "var(--primary-color, #1A5BA0)",
+          ...styleFromObject(value.style),
+        }}>
+          {value.text}
+        </div>
+      )}
+      {trend && (
+        <div style={{
+          fontSize: "13px", fontWeight: 500, color: "var(--text-muted, #64748B)",
+          lineHeight: 1.3,
+          ...styleFromObject(trend.style),
+        }}>
+          {trend.text}
+        </div>
+      )}
+      {badge && (
+        <div style={{
+          display: "inline-block", fontSize: "10px", fontWeight: 600,
+          color: "var(--stella-warn, #FF9900)", border: "1px solid var(--stella-warn, #FF9900)",
+          borderRadius: "3px", padding: "1px 5px", marginTop: "4px",
+          alignSelf: "flex-start",
+        }}>
+          {badge.text || "estimation"}
+        </div>
+      )}
     </div>
   );
 }
 
-export default function StellaSlide5_0({
-  slide,
-  debug = false,
-}: {
-  slide: StellaSlide5_0Type;
-  debug?: boolean;
-}) {
+// ─── SWOT Quadrant ────────────────────────────────────────────────────────────
+
+function SwotQuadrantRenderer({ obj, baseStyle }: { obj: StellaSlideObject; baseStyle: React.CSSProperties }) {
+  const children = obj.children || [];
+  const labelEl = children.find(c => c.role === "label");
+  const scoreEl = children.find(c => c.role === "score");
+  const bullets = children.filter(c => c.role === "bullet");
+
+  const isPositive = labelEl?.text && ["Forces", "Opportunités"].includes(labelEl.text);
+  const accent = isPositive ? "var(--primary-color, #1A5BA0)" : "var(--stella-warn, #CC6600)";
+
   return (
     <div
-      className={`stella-5-0-slide-container${debug ? " stella-5-0-debug-on" : ""}`}
-      data-background={slide.background}
-      data-slide-id={slide.slide_id}
+      className="stella-5-0-object"
+      data-object-type="swot_quadrant"
+      data-object-id={obj.id}
+      style={{
+        ...baseStyle,
+        background: isPositive ? "#f0f7ff" : "#fff8f0",
+        borderRadius: "8px",
+        border: `2px solid ${isPositive ? "rgba(26,91,160,0.15)" : "rgba(255,153,0,0.2)"}`,
+        padding: "20px 24px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        ...styleFromObject(obj.style),
+      }}
     >
-      {slide.objects.map((obj) => (
-        <ObjectRenderer key={obj.id} obj={obj} />
-      ))}
-    </div>
-  );
-}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        {labelEl && (
+          <div style={{ fontSize: "14px", fontWeight: 700, color: acce
