@@ -62,8 +62,8 @@ function Generation() {
       } catch (_) {}
       return null;
     }
-    const SB_URL = (window.__SUPABASE_URL__) || 'https://knmvxeykwkcrlxwlvohi.supabase.co';
-    const SB_KEY = (window.__SUPABASE_ANON__) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtubXZ4ZXlrd2tjcmx4d2x2b2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDA1OTQsImV4cCI6MjA5NTAxNjU5NH0.DGDkGSHS9IBiGOtHigRV2K28Lxb_YEreF97mU2jrLwE';
+    const SB_URL = (window.__SUPABASE_URL__) || 'https://utwjfsomblhupghbgvgv.supabase.co';
+    const SB_KEY = (window.__SUPABASE_ANON__) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0d2pmc29tYmxodXBnaGJndmd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTUzMTUsImV4cCI6MjA5NzY5MTMxNX0.iN1N8d5GjsUzrIWHkBXWqAn1DpZO-wbhH3nI-8UHBv4';
     const token = readToken();
     if (!token) {
       setErrorMsg('Session expirée. Reconnexion nécessaire.');
@@ -364,8 +364,8 @@ function BubblePopGame() {
   const idRef = React.useRef(1);
   const submitTimerRef = React.useRef(null);
 
-  const SB_URL = (window.__SUPABASE_URL__) || 'https://knmvxeykwkcrlxwlvohi.supabase.co';
-  const SB_KEY = (window.__SUPABASE_ANON__) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtubXZ4ZXlrd2tjcmx4d2x2b2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDA1OTQsImV4cCI6MjA5NTAxNjU5NH0.DGDkGSHS9IBiGOtHigRV2K28Lxb_YEreF97mU2jrLwE';
+  const SB_URL = (window.__SUPABASE_URL__) || 'https://utwjfsomblhupghbgvgv.supabase.co';
+  const SB_KEY = (window.__SUPABASE_ANON__) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0d2pmc29tYmxodXBnaGJndmd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTUzMTUsImV4cCI6MjA5NzY5MTMxNX0.iN1N8d5GjsUzrIWHkBXWqAn1DpZO-wbhH3nI-8UHBv4';
 
   // Charge le record global
   useEffect(() => {

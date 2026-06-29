@@ -3,7 +3,7 @@ import { supabaseBrowser } from "@/lib/supabase-browser";
 
 const SB_URL =
   (import.meta.env.VITE_SUPABASE_URL as string) ||
-  "https://knmvxeykwkcrlxwlvohi.supabase.co";
+  "https://utwjfsomblhupghbgvgv.supabase.co";
 const SB_KEY =
   (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) || "";
 
