@@ -102,10 +102,13 @@ function StudiesPage() {
                   <th className="text-left px-3 py-2">Version</th>
                   <th className="text-left px-3 py-2">Statut</th>
                   <th className="text-left px-3 py-2">Créée le</th>
+                  <th className="text-left px-3 py-2"></th>
                 </tr>
               </thead>
               <tbody>
-                {data.map((s) => (
+                {data.map((s) => {
+                  const isCompleted = s.generation_status === "completed" || s.generation_status === "done";
+                  return (
                   <tr
                     key={s.id}
                     className="border-t border-border hover:bg-accent/40 cursor-pointer"
@@ -131,24 +134,8 @@ function StudiesPage() {
                     <td className="px-3 py-2 text-muted-foreground">
                       {new Date(s.created_at).toLocaleString("fr-FR")}
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-      <StudyCategoryPicker
-        open={catOpen}
-        onClose={() => setCatOpen(false)}
-        onPick={onSubtypePicked}
-      />
-      <CompanyPicker
-        open={picked !== null}
-        subtypeLabel={picked?.subtype_label ?? ""}
-        onClose={() => setPicked(null)}
-        onPick={onCompanyPicked}
-      />
-    </>
-  );
-}
+                    <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                      {isCompleted && (
+                        <a
+                          href={`/stella-visual?studyId=${s.id}`}
+                          className="inline-flex items-center 

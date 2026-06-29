@@ -13,10 +13,23 @@ type Props = {
   debug?: boolean;
 };
 
+const btnBase: React.CSSProperties = {
+  padding: "8px 20px",
+  borderRadius: "6px",
+  cursor: "pointer",
+  color: "white",
+  border: "none",
+  fontSize: "14px",
+  fontWeight: 500,
+  transition: "background 0.15s",
+};
+
 export default function StellaAutoSlidesViewport({ baseUrl = DEFAULT_BASE_URL, debug = false }: Props) {
   const [payload, setPayload] = useState<StellaSlides5_0Payload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
+
   // FIX F3+F4 — hook partagé, ref sur le viewport (pas dans le .map)
   const { ref: viewportRef, scale } = useViewportScale();
 
@@ -29,6 +42,7 @@ export default function StellaAutoSlidesViewport({ baseUrl = DEFAULT_BASE_URL, d
     const controller = new AbortController();
     setLoading(true);
     setError(null);
+    setActiveSlide(0);
     fetch(url, {
       signal: controller.signal,
       headers: {
@@ -64,6 +78,14 @@ export default function StellaAutoSlidesViewport({ baseUrl = DEFAULT_BASE_URL, d
     );
   }
 
+  const totalSlides = payload.slides.length;
+  const isFirst = activeSlide === 0;
+  const isLast = activeSlide === totalSlides - 1;
+  const currentSlide = payload.slides[activeSlide];
+  const autoStudyId = payload.auto_created_study_id || payload.study_id;
+  const pptxUrl = autoStudyId ? `${baseUrl}/integration/study/${autoStudyId}/export/pptx` : null;
+  const scaledW = `${1920 * scale}px`;
+
   return (
     <div className="stella-5-0-viewport" ref={viewportRef}>
       {debug ? (
@@ -72,35 +94,10 @@ export default function StellaAutoSlidesViewport({ baseUrl = DEFAULT_BASE_URL, d
 mode           : auto
 baseUrl        : ${baseUrl}
 fetchUrl       : ${url}
-slides         : ${payload.slides.length}
+slides         : ${totalSlides}
 canvas         : ${payload.canvas.width} x ${payload.canvas.height}
+active         : ${activeSlide + 1} / ${totalSlides}
+auto_study_id  : ${autoStudyId || "—"}
 overlap issues : ${qaReports.reduce((acc, r) => acc + r.overlap_violations.length, 0)}
 text issues    : ${qaReports.reduce((acc, r) => acc + r.text_violations.length, 0)}
-non-compliant  : ${qaReports.filter((r) => !r.whitespace_compliant).map((r) => r.slide_id).join(", ") || "none"}`}
-        </pre>
-      ) : null}
-
-      {payload.slides.map((slide) => (
-        <div
-          key={slide.slide_id}
-          className="stella-5-0-stage"
-          style={{
-            width: `${1920 * scale}px`,
-            height: `${1080 * scale}px`,
-          }}
-        >
-          <div
-            style={{
-              transform: `scale(${scale})`,
-              transformOrigin: "top left",
-              width: 1920,
-              height: 1080,
-            }}
-          >
-            <StellaSlide5_0Comp slide={slide} debug={debug} />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+non-compliant  : ${qaReports.filter((r) => !r.whi

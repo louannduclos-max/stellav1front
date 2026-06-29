@@ -87,8 +87,8 @@ function Generation() {
               setPhase(4);
               setProgress(100);
               setTimeout(() => {
-                // Redirige vers la page projet de l'étude (visualisation slide-par-slide + export)
-                const target = `/app/studies/${studyId}`;
+                // Redirige vers le viewer Stella (navigation slide-par-slide + export PPTX)
+                const target = `/stella-visual?studyId=${studyId}`;
                 if (window.top) window.top.location.href = target;
                 else window.location.href = target;
               }, 1200);
