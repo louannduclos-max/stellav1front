@@ -307,7 +307,7 @@ export function StudyResultView({
         {/* Main : thumbs + preview */}
         <div className="srv-main">
           <aside className="srv-thumbs">
-            {pdfDoc ? (
+            {pdfDoc && pdf ? (
               Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => {
                 const hasChart = n === 3 || n === 9;
                 const isActive = n === page;
@@ -337,7 +337,7 @@ export function StudyResultView({
                 );
               })
             ) : (
-              <div className="srv-thumbs-loading">Chargement…</div>
+              <div className="srv-thumbs-loading">{pdf ? "Chargement…" : "—"}</div>
             )}
           </aside>
 
@@ -366,8 +366,14 @@ export function StudyResultView({
             <div ref={containerRef} className="srv-slide-canvas">
               {pdfDoc ? (
                 <canvas key={page} ref={canvasRef} className="srv-canvas" />
-              ) : (
+              ) : pdf ? (
                 <div className="srv-loading">Chargement de l'aperçu…</div>
+              ) : (
+                <div className="srv-loading" style={{ flexDirection: "column", gap: "12px" }}>
+                  <span style={{ fontSize: "2rem" }}>📊</span>
+                  <span>Aperçu PDF non disponible</span>
+                  <span style={{ fontSize: "0.8em", opacity: 0.6 }}>Téléchargez le PPTX ci-dessous pour ouvrir l'étude</span>
+                </div>
               )}
             </div>
 
