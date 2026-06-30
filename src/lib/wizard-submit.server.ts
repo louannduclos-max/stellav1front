@@ -420,7 +420,7 @@ export async function handleWizardSubmit(request: Request) {
         Authorization: `Bearer ${WEBHOOK_SECRET}`,
       },
       body: JSON.stringify({ study_id: studyId, study_data: studyData }),
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(60000),
     });
     if (!renderRes.ok) {
       const txt = await renderRes.text().catch(() => "");
