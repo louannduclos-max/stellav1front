@@ -30,7 +30,7 @@ export default function StellaAutoSlidesViewport({ baseUrl = DEFAULT_BASE_URL, d
   const [error, setError] = useState<string | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // FIX F3+F4 — hook partagé, ref sur le viewport (pas dans le .map)
+  // FIX F3+F4 - hook partagé, ref sur le viewport (pas dans le .map)
   const { ref: viewportRef, scale } = useViewportScale();
 
   // Injection CSS vars brand depuis la réponse slides
@@ -90,14 +90,134 @@ export default function StellaAutoSlidesViewport({ baseUrl = DEFAULT_BASE_URL, d
     <div className="stella-5-0-viewport" ref={viewportRef}>
       {debug ? (
         <pre className="stella-5-0-debug">
-{`[Stella 5.0 debug — auto]
-mode           : auto
-baseUrl        : ${baseUrl}
-fetchUrl       : ${url}
-slides         : ${totalSlides}
-canvas         : ${payload.canvas.width} x ${payload.canvas.height}
-active         : ${activeSlide + 1} / ${totalSlides}
-auto_study_id  : ${autoStudyId || "—"}
-overlap issues : ${qaReports.reduce((acc, r) => acc + r.overlap_violations.length, 0)}
-text issues    : ${qaReports.reduce((acc, r) => acc + r.text_violations.length, 0)}
-non-compliant  : ${qaReports.filter((r) => !r.whi
+{"[Stella 5.0 debug - auto]\n" +
+            "mode           : auto\n" +
+            "baseUrl        : " + baseUrl + "\n" +
+            "fetchUrl       : " + url + "\n" +
+            "slides         : " + totalSlides + "\n" +
+            "canvas         : " + payload.canvas.width + " x " + payload.canvas.height + "\n" +
+            "active         : " + (activeSlide + 1) + " / " + totalSlides + "\n" +
+            "auto_study_id  : " + (autoStudyId || "n/a") + "\n" +
+            "overlap issues : " + qaReports.reduce((acc, r) => acc + r.overlap_violations.length, 0) + "\n" +
+            "text issues    : " + qaReports.reduce((acc, r) => acc + r.text_violations.length, 0) + "\n" +
+            "non-compliant  : " + (qaReports.filter((r) => !r.whitespace_compliant).map((r) => r.slide_id).join(", ") || "none")}
+        </pre>
+      ) : null}
+
+      {/* Stage - slide active uniquement */}
+      <div
+        className="stella-5-0-stage"
+        style={{ width: scaledW, height: `${1080 * scale}px`, borderRadius: "16px 16px 0 0" }}
+      >
+        <div
+          style={{
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+            width: 1920,
+            height: 1080,
+          }}
+        >
+          <StellaSlide5_0Comp slide={currentSlide} debug={debug} />
+        </div>
+      </div>
+
+      {/* Barre de navigation */}
+      <div
+        style={{
+          width: scaledW,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "16px",
+          padding: "10px 16px",
+          background: "#111",
+          boxSizing: "border-box",
+        }}
+      >
+        <button
+          onClick={() => setActiveSlide((s) => Math.max(0, s - 1))}
+          disabled={isFirst}
+          style={{ ...btnBase, background: isFirst ? "#2a2a2a" : "#0066CC", cursor: isFirst ? "default" : "pointer" }}
+        >
+          ← Précédente
+        </button>
+
+        <span style={{ color: "#888", fontSize: "13px", minWidth: "200px", textAlign: "center" }}>
+          {activeSlide + 1} / {totalSlides}
+          {currentSlide?.section_id ? ` - ${currentSlide.section_id.replace(/_/g, " ")}` : ""}
+        </span>
+
+        {/* Bouton PPTX - disponible si auto_created_study_id présent */}
+        {pptxUrl ? (
+          <a
+            href={pptxUrl}
+            download={`stella_${autoStudyId}.pptx`}
+            style={{
+              ...btnBase,
+              background: "#00CC66",
+              textDecoration: "none",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            ⬇ PPTX
+          </a>
+        ) : (
+          <span
+            style={{
+              ...btnBase,
+              background: "#2a2a2a",
+              color: "#555",
+              cursor: "default",
+              fontSize: "13px",
+            }}
+          >
+            ⬇ PPTX
+          </span>
+        )}
+
+        <button
+          onClick={() => setActiveSlide((s) => Math.min(totalSlides - 1, s + 1))}
+          disabled={isLast}
+          style={{ ...btnBase, background: isLast ? "#2a2a2a" : "#0066CC", cursor: isLast ? "default" : "pointer" }}
+        >
+          Suivante →
+        </button>
+      </div>
+
+      {/* Vignettes */}
+      <div
+        style={{
+          width: scaledW,
+          display: "flex",
+          gap: "6px",
+          padding: "8px 16px",
+          overflowX: "auto",
+          background: "#1a1a1a",
+          boxSizing: "border-box",
+          borderRadius: "0 0 16px 16px",
+        }}
+      >
+        {payload.slides.map((slide, i) => (
+          <button
+            key={slide.slide_id}
+            onClick={() => setActiveSlide(i)}
+            style={{
+              padding: "4px 10px",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "11px",
+              whiteSpace: "nowrap",
+              background: i === activeSlide ? "#0066CC" : "#333",
+              color: "white",
+              border: "none",
+              transition: "background 0.15s",
+            }}
+          >
+            {i + 1}. {slide.section_id.replace(/_/g, " ")}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
