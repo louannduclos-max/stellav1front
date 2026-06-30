@@ -88,15 +88,15 @@ export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_U
     <div className="stella-5-0-viewport" ref={viewportRef}>
       {debug ? (
         <pre className="stella-5-0-debug">
-{`[Stella 5.0 debug]
-studyId        : ${studyId}
-baseUrl        : ${baseUrl}
-slides         : ${totalSlides}
-canvas         : ${payload.canvas.width} x ${payload.canvas.height}
-active         : ${activeSlide + 1} / ${totalSlides}
-overlap issues : ${qaReports.reduce((acc, r) => acc + r.overlap_violations.length, 0)}
-text issues    : ${qaReports.reduce((acc, r) => acc + r.text_violations.length, 0)}
-non-compliant  : ${qaReports.filter((r) => !r.whitespace_compliant).map((r) => r.slide_id).join(", ") || "none"}`}
+          {"[Stella 5.0 debug]\n" +
+            "studyId        : " + studyId + "\n" +
+            "baseUrl        : " + baseUrl + "\n" +
+            "slides         : " + totalSlides + "\n" +
+            "canvas         : " + payload.canvas.width + " x " + payload.canvas.height + "\n" +
+            "active         : " + (activeSlide + 1) + " / " + totalSlides + "\n" +
+            "overlap issues : " + qaReports.reduce((acc, r) => acc + r.overlap_violations.length, 0) + "\n" +
+            "text issues    : " + qaReports.reduce((acc, r) => acc + r.text_violations.length, 0) + "\n" +
+            "non-compliant  : " + (qaReports.filter((r) => !r.whitespace_compliant).map((r) => r.slide_id).join(", ") || "none")}
         </pre>
       ) : null}
 
