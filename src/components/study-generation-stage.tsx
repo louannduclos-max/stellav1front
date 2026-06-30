@@ -376,12 +376,10 @@ function BubbleOverlay() {
             +1 ✨
           </div>
         ))}
-        <style>{`
-          @keyframes bpg-float-0 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(3px,-4px); } }
-          @keyframes bpg-float-1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-4px,-3px); } }
-          @keyframes bpg-float-2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(2px,-5px); } }
-          @keyframes bpg-burst { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); } 100% { opacity: 0; transform: translate(-50%, -180%) scale(1.6); } }
-        `}</style>
+        <style>{"@keyframes bpg-float-0 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(3px,-4px); } } " +
+          "@keyframes bpg-float-1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-4px,-3px); } } " +
+          "@keyframes bpg-float-2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(2px,-5px); } } " +
+          "@keyframes bpg-burst { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); } 100% { opacity: 0; transform: translate(-50%, -180%) scale(1.6); } }"}</style>
       </div>
     </>
   );
