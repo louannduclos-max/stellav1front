@@ -7,11 +7,7 @@ export type StellaSlideChild = {
 export type StellaSlideObject = {
   id: string;
   data_object: true;
-  data_object_type:
-    | "textbox" | "shape" | "chart" | "image" | "icon"
-    | "kpi_card" | "swot_quadrant" | "bullet_list"
-    | "score_badge" | "verdict_badge" | "score_bars"
-    | "competitor_card" | "highlight_box" | "kpi_list";
+  data_object_type: "textbox" | "shape" | "chart" | "image" | "icon";
   left: number;
   top: number;
   width: number;
@@ -19,11 +15,6 @@ export type StellaSlideObject = {
   text?: string;
   style?: Record<string, unknown>;
   children?: StellaSlideChild[];
-  items?: Array<{
-    label: string;
-    value: string;
-    fallback_used?: boolean;
-  }>;
   chart_id?: string;
 };
 
