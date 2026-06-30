@@ -190,7 +190,7 @@ function StudyDetail() {
   const canLaunch =
     !status || status === "draft" || status === "pending" || status === "failed";
   const isCompleted = status === "completed" || status === "done";
-  const isGenerating = status === "pending" || status === "processing";
+  const isGenerating = status === "processing";
 
   // When the study is completed, take over the full viewport with the
   // dedicated Cloud Design result experience.
