@@ -161,18 +161,31 @@ export const generateStudy = createServerFn({ method: "POST" })
       radius_km: 5,
     };
 
-    let renderRes: Response;
-    try {
-      renderRes = await fetch(`${RENDER_BACKEND_URL}/generate-study`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${WEBHOOK_SECRET}`,
-        },
-        body: JSON.stringify({ study_id: studyId, study_data: studyData }),
-        signal: AbortSignal.timeout(15000),
-      });
-    } catch (e) {
+    // Fire-and-forget : on envoie la requête à Render sans attendre la réponse.
+    // Raison : Render Free démarre en ~50s (cold start) alors que CF Pages Workers
+    // ont un timeout mur de ~30s. Avec keepalive:true la requête persiste après le
+    // return. Render reçoit le payload dès qu'il est prêt et envoie ses callbacks
+    // de progression via FRONT_WEBHOOK_URL.
+    void fetch(`${RENDER_BACKEND_URL}/generate-study`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${WEBHOOK_SECRET}`,
+      },
+      body: JSON.stringify({ study_id: studyId, study_data: studyData }),
+      keepalive: true,
+    }).then(async (r) => {
+      if (!r.ok) {
+        const txt = await r.text().catch(() => "");
+        await supabaseAdmin
+          .from("studies")
+          .update({
+            generation_status: "failed",
+            generation_error_message: `Backend HTTP ${r.status}: ${txt.slice(0, 500)}`,
+          })
+          .eq("id", studyId);
+      }
+    }).catch(async (e: unknown) => {
       const msg = e instanceof Error ? e.message : String(e);
       await supabaseAdmin
         .from("studies")
@@ -181,21 +194,7 @@ export const generateStudy = createServerFn({ method: "POST" })
           generation_error_message: `Backend injoignable: ${msg.slice(0, 500)}`,
         })
         .eq("id", studyId);
-      throw new Response(`Backend injoignable: ${msg}`, { status: 502 });
-    }
-
-    if (!renderRes.ok) {
-      const bodyTxt = await renderRes.text().catch(() => "");
-      const errMsg = `Backend HTTP ${renderRes.status}: ${bodyTxt.slice(0, 500)}`;
-      await supabaseAdmin
-        .from("studies")
-        .update({
-          generation_status: "failed",
-          generation_error_message: errMsg,
-        })
-        .eq("id", studyId);
-      throw new Response(errMsg, { status: 502 });
-    }
+    });
 
     return { studyId, generation_status: "pending" as const };
   });
