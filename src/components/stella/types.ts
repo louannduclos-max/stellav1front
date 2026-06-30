@@ -61,14 +61,4 @@ export type StellaSlides5_0Payload = {
   slides: StellaSlide5_0[];
   /** Sections skippées côté backend car tous les slots sont FALLBACK */
   skipped_sections?: string[];
-  /** study_id créé ou retrouvé par /auto-slides-5_0 */
-  auto_created_study_id?: string;
-};
-
-export type StellaQAReport = {
-  slide_id: string;
-  overlap_violations: Array<{ a: string; b: string }>;
-  text_violations: string[];
-  whitespace_compliant: boolean;
-  whitespace_ratio: number;
-};
+  /** study_id créé ou retrouvé par /
