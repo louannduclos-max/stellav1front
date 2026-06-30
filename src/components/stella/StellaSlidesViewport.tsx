@@ -31,10 +31,10 @@ export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_U
   const [error, setError] = useState<string | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // FIX F3+F4 — hook partagé, ref sur le viewport (pas dans le .map)
+  // FIX F3+F4 -- hook partage, ref sur le viewport (pas dans le .map)
   const { ref: viewportRef, scale } = useViewportScale();
 
-  // Injection CSS vars brand depuis la réponse slides (merge registre statique + Supabase override)
+  // Injection CSS vars brand
   useBrandCssVars(payload?.css_vars, payload?.brand_slug, baseUrl);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_U
     setLoading(true);
     setError(null);
     setActiveSlide(0);
-    fetch(`${baseUrl}/integration/study/${studyId}/slides-5_0`, {
+    fetch(baseUrl + "/integration/study/" + studyId + "/slides-5_0", {
       signal: controller.signal,
       headers: {
         Accept: "application/json",
@@ -50,7 +50,7 @@ export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_U
       },
     })
       .then(async (r) => {
-        if (!r.ok) throw new Error(`Stella slides-5_0 HTTP ${r.status}`);
+        if (!r.ok) throw new Error("Stella slides-5_0 HTTP " + r.status);
         return r.json();
       })
       .then((data: StellaSlides5_0Payload) => setPayload(data))
@@ -67,12 +67,12 @@ export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_U
   }, [payload]);
 
   if (loading) {
-    return <div className="stella-5-0-viewport"><p style={{ color: "#fff" }}>Chargement Stella 5.0…</p></div>;
+    return <div className="stella-5-0-viewport"><p style={{ color: "#fff" }}>Chargement Stella 5.0...</p></div>;
   }
   if (error || !payload) {
     return (
       <div className="stella-5-0-viewport">
-        <p className="stella-5-0-error">Erreur slides-5_0 : {error || "Aucune donnée"}</p>
+        <p className="stella-5-0-error">{"Erreur slides-5_0 : " + (error || "Aucune donnee")}</p>
       </div>
     );
   }
@@ -81,8 +81,8 @@ export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_U
   const isFirst = activeSlide === 0;
   const isLast = activeSlide === totalSlides - 1;
   const currentSlide = payload.slides[activeSlide];
-  const pptxUrl = `${baseUrl}/integration/study/${studyId}/export/pptx`;
-  const scaledW = `${1920 * scale}px`;
+  const pptxUrl = baseUrl + "/integration/study/" + studyId + "/export/pptx";
+  const scaledW = (1920 * scale) + "px";
 
   return (
     <div className="stella-5-0-viewport" ref={viewportRef}>
@@ -100,4 +100,62 @@ export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_U
         </pre>
       ) : null}
 
-      {/* Stage — slide active unique
+      {/* Stage - slide active uniquement */}
+      <div
+        className="stella-5-0-stage"
+        style={{
+          width: scaledW,
+          height: (1080 * scale) + "px",
+        }}
+      >
+        <div
+          style={{
+            transform: "scale(" + scale + ")",
+            transformOrigin: "top left",
+            width: 1920,
+            height: 1080,
+          }}
+        >
+          <StellaSlide5_0Comp slide={currentSlide} debug={debug} />
+        </div>
+      </div>
+
+      {/* Barre de navigation */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: scaledW,
+          marginTop: "12px",
+          gap: "8px",
+        }}
+      >
+        <button
+          style={{ ...btnBase, background: isFirst ? "#555" : "#4f46e5" }}
+          disabled={isFirst}
+          onClick={() => setActiveSlide((p) => Math.max(0, p - 1))}
+        >
+          Precedent
+        </button>
+        <span style={{ color: "#fff", fontSize: "13px" }}>
+          {activeSlide + 1} / {totalSlides}
+        </span>
+        <button
+          style={{ ...btnBase, background: isLast ? "#555" : "#4f46e5" }}
+          disabled={isLast}
+          onClick={() => setActiveSlide((p) => Math.min(totalSlides - 1, p + 1))}
+        >
+          Suivant
+        </button>
+        <a
+          href={pptxUrl}
+          download
+          style={{ ...btnBase, background: "#059669", textDecoration: "none", marginLeft: "auto" }}
+        >
+          Telecharger PPTX
+        </a>
+      </div>
+    </div>
+  );
+}
