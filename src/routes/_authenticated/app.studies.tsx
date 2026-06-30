@@ -137,5 +137,33 @@ function StudiesPage() {
                     <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                       {isCompleted && (
                         <a
-                          href={`/stella-visual?studyId=${s.id}`}
-                          className="inline-flex items-center 
+                          href={"/stella-visual?studyId=" + s.id}
+                          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                          style={{ textDecoration: "none", whiteSpace: "nowrap" }}
+                        >
+                          ▶ Diaporama
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      <StudyCategoryPicker
+        open={catOpen}
+        onClose={() => setCatOpen(false)}
+        onPick={onSubtypePicked}
+      />
+      <CompanyPicker
+        open={picked !== null}
+        subtypeLabel={picked?.subtype_label ?? ""}
+        onClose={() => setPicked(null)}
+        onPick={onCompanyPicked}
+      />
+    </>
+  );
+}
