@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getEvent } from "h3";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -166,30 +165,34 @@ export const generateStudy = createServerFn({ method: "POST" })
       radius_km: 5,
     };
 
-    // Fire-and-forget vers Render — architecture CF Pages :
-    // CF Pages Workers s'arrêtent dès que la Response est retournée.
-    // `ctx.waitUntil()` (via h3 getEvent()) indique au runtime CF de garder le
-    // Worker actif jusqu'à ce que la Promise se resolve, même après le return.
-    // Cela permet au cold start Render (~50s) de s'accomplir sans timeout côté CF.
-    const renderFetchPromise = fetch(`${RENDER_BACKEND_URL}/generate-study`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${WEBHOOK_SECRET}`,
-      },
-      body: JSON.stringify({ study_id: studyId, study_data: studyData }),
-    }).then(async (r) => {
-      if (!r.ok) {
-        const txt = await r.text().catch(() => "");
+    // Appel Render synchrone — le backend répond immédiatement (pipeline async en thread)
+    // Pas de fire-and-forget : le CF Worker attend la réponse HTTP, qui arrive en < 1s.
+    try {
+      const renderRes = await fetch(`${RENDER_BACKEND_URL}/generate-study`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${WEBHOOK_SECRET}`,
+        },
+        body: JSON.stringify({ study_id: studyId, study_data: studyData }),
+        signal: AbortSignal.timeout(25000),
+      });
+      if (!renderRes.ok) {
+        const txt = await renderRes.text().catch(() => "");
         await supabaseAdmin
           .from("studies")
           .update({
             generation_status: "failed",
-            generation_error_message: `Backend HTTP ${r.status}: ${txt.slice(0, 500)}`,
+            generation_error_message: `Backend HTTP ${renderRes.status}: ${txt.slice(0, 500)}`,
           })
           .eq("id", studyId);
+        throw new Response(
+          `Erreur backend génération: ${renderRes.status}`,
+          { status: 502 },
+        );
       }
-    }).catch(async (e: unknown) => {
+    } catch (e: unknown) {
+      if (e instanceof Response) throw e;
       const msg = e instanceof Error ? e.message : String(e);
       await supabaseAdmin
         .from("studies")
@@ -198,21 +201,7 @@ export const generateStudy = createServerFn({ method: "POST" })
           generation_error_message: `Backend injoignable: ${msg.slice(0, 500)}`,
         })
         .eq("id", studyId);
-    });
-
-    // Utiliser ctx.waitUntil si disponible (CF Pages / Workers) pour garder
-    // le Worker vivant pendant le cold start Render. Fallback: void (Node/dev).
-    try {
-      const event = getEvent();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const cfCtx = (event?.context as any)?.cloudflare?.ctx as { waitUntil?: (p: Promise<unknown>) => void } | undefined;
-      if (cfCtx?.waitUntil) {
-        cfCtx.waitUntil(renderFetchPromise);
-      } else {
-        void renderFetchPromise;
-      }
-    } catch {
-      void renderFetchPromise;
+      throw new Response(`Backend de génération injoignable`, { status: 503 });
     }
 
     return { studyId, generation_status: "pending" as const };
