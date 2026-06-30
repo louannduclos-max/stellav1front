@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getEvent } from "h3";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -54,11 +55,15 @@ export const generateStudy = createServerFn({ method: "POST" })
     // 4. Validations minimales
     const missing: string[] = [];
     if (!study.city_name) missing.push("city_name");
-    if (!study.study_type) missing.push("study_type");
+    // study_type peut être null pour les études créées via le nouveau wizard
+    // qui utilise study_subtype_code/study_category_code — on accepte l'un ou l'autre
+    const effectiveStudyType =
+      study.study_type ?? study.study_subtype_code ?? study.study_category_code;
+    if (!effectiveStudyType) missing.push("study_type (ou study_subtype_code)");
     const families = Array.isArray(study.included_activity_families)
       ? study.included_activity_families
       : [];
-    if (families.length === 0 && !study.study_type) {
+    if (families.length === 0 && !effectiveStudyType) {
       missing.push("included_activity_families");
     }
     if (missing.length > 0) {
@@ -150,7 +155,7 @@ export const generateStudy = createServerFn({ method: "POST" })
       code_insee,
       lat,
       lon,
-      study_type: study.study_type,
+      study_type: effectiveStudyType,
       included_activity_families: families,
       client_name: clientName,
       palette_key: "bonadea_care",
@@ -161,19 +166,18 @@ export const generateStudy = createServerFn({ method: "POST" })
       radius_km: 5,
     };
 
-    // Fire-and-forget : on envoie la requête à Render sans attendre la réponse.
-    // Raison : Render Free démarre en ~50s (cold start) alors que CF Pages Workers
-    // ont un timeout mur de ~30s. Avec keepalive:true la requête persiste après le
-    // return. Render reçoit le payload dès qu'il est prêt et envoie ses callbacks
-    // de progression via FRONT_WEBHOOK_URL.
-    void fetch(`${RENDER_BACKEND_URL}/generate-study`, {
+    // Fire-and-forget vers Render — architecture CF Pages :
+    // CF Pages Workers s'arrêtent dès que la Response est retournée.
+    // `ctx.waitUntil()` (via h3 getEvent()) indique au runtime CF de garder le
+    // Worker actif jusqu'à ce que la Promise se resolve, même après le return.
+    // Cela permet au cold start Render (~50s) de s'accomplir sans timeout côté CF.
+    const renderFetchPromise = fetch(`${RENDER_BACKEND_URL}/generate-study`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${WEBHOOK_SECRET}`,
       },
       body: JSON.stringify({ study_id: studyId, study_data: studyData }),
-      keepalive: true,
     }).then(async (r) => {
       if (!r.ok) {
         const txt = await r.text().catch(() => "");
@@ -195,6 +199,21 @@ export const generateStudy = createServerFn({ method: "POST" })
         })
         .eq("id", studyId);
     });
+
+    // Utiliser ctx.waitUntil si disponible (CF Pages / Workers) pour garder
+    // le Worker vivant pendant le cold start Render. Fallback: void (Node/dev).
+    try {
+      const event = getEvent();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cfCtx = (event?.context as any)?.cloudflare?.ctx as { waitUntil?: (p: Promise<unknown>) => void } | undefined;
+      if (cfCtx?.waitUntil) {
+        cfCtx.waitUntil(renderFetchPromise);
+      } else {
+        void renderFetchPromise;
+      }
+    } catch {
+      void renderFetchPromise;
+    }
 
     return { studyId, generation_status: "pending" as const };
   });

@@ -62,6 +62,7 @@ export const createStudyFromWizard = createServerFn({ method: "POST" })
         city_name: data.city_name,
         postal_code: data.postal_code ?? null,
         study_objective: data.study_objective ?? null,
+        study_type: data.study_subtype_code,          // alias pour le pipeline backend
         study_category_code: data.study_category_code,
         study_subtype_code: data.study_subtype_code,
         user_id: userId,
