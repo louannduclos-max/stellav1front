@@ -5,8 +5,12 @@ import { useBrandCssVars } from "./useBrandCssVars";
 import { auditAllSlides } from "./qa";
 import type { StellaSlides5_0Payload, StellaQAReport } from "./types";
 
+// Sprint 14e-fix : fallback PROD (URL publique, pas un secret). L'ancien
+// fallback localhost cassait le viewer déployé quand VITE_STELLA_PUBLIC_URL
+// n'était pas défini sur CF Pages ("Failed to fetch" constaté en prod).
 const DEFAULT_BASE_URL =
-  (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) || "http://127.0.0.1:8000";
+  (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) ||
+  "https://stella-backend-mtap.onrender.com";
 
 type Props = {
   studyId: string;
@@ -25,7 +29,10 @@ const btnBase: React.CSSProperties = {
   transition: "background 0.15s",
 };
 
-export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_URL, debug = false }: Props) {
+export default function StellaSlidesViewport({ studyId, baseUrl, debug = false }: Props) {
+  // Sprint 14e-fix : la route passe baseUrl="" quand le param est absent —
+  // une chaîne vide écrasait le défaut → fetch relatif → Failed to fetch.
+  const apiBase = (baseUrl && baseUrl.trim()) || DEFAULT_BASE_URL;
   const [payload, setPayload] = useState<StellaSlides5_0Payload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,14 +42,14 @@ export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_U
   const { ref: viewportRef, scale } = useViewportScale();
 
   // Injection CSS vars brand
-  useBrandCssVars(payload?.css_vars, payload?.brand_slug, baseUrl);
+  useBrandCssVars(payload?.css_vars, payload?.brand_slug, apiBase);
 
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
     setError(null);
     setActiveSlide(0);
-    fetch(baseUrl + "/integration/study/" + studyId + "/slides-5_0", {
+    fetch(apiBase + "/integration/study/" + studyId + "/slides-5_0", {
       signal: controller.signal,
       headers: {
         Accept: "application/json",
@@ -59,7 +66,7 @@ export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_U
       })
       .finally(() => setLoading(false));
     return () => controller.abort();
-  }, [studyId, baseUrl]);
+  }, [studyId, apiBase]);
 
   const qaReports: StellaQAReport[] = useMemo(() => {
     if (!payload) return [];
@@ -81,7 +88,7 @@ export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_U
   const isFirst = activeSlide === 0;
   const isLast = activeSlide === totalSlides - 1;
   const currentSlide = payload.slides[activeSlide];
-  const pptxUrl = baseUrl + "/integration/study/" + studyId + "/export/pptx";
+  const pptxUrl = apiBase + "/integration/study/" + studyId + "/export/pptx";
   const scaledW = (1920 * scale) + "px";
 
   return (
@@ -90,7 +97,7 @@ export default function StellaSlidesViewport({ studyId, baseUrl = DEFAULT_BASE_U
         <pre className="stella-5-0-debug">
           {"[Stella 5.0 debug]\n" +
             "studyId        : " + studyId + "\n" +
-            "baseUrl        : " + baseUrl + "\n" +
+            "baseUrl        : " + apiBase + "\n" +
             "slides         : " + totalSlides + "\n" +
             "canvas         : " + payload.canvas.width + " x " + payload.canvas.height + "\n" +
             "active         : " + (activeSlide + 1) + " / " + totalSlides + "\n" +
