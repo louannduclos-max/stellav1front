@@ -33,6 +33,12 @@ export type StellaSlide5_0 = {
   slide_data: Record<string, unknown>;
   objects: StellaSlideObject[];
   expected_strings: string[];
+  /**
+   * Sprint 14e — Chemin B (HTML génératif) : document HTML complet 1280×720
+   * généré par le backend (skill + Gemini, validé QA). Présent uniquement si
+   * USE_HTML_SLIDE_AGENT=true côté Render ET QA PASS. Null → fallback objets.
+   */
+  html_content?: string | null;
 };
 
 export type StellaCssVars = {

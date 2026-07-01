@@ -192,6 +192,10 @@ function ObjectRenderer({ obj }: { obj: StellaSlideObject }) {
   );
 }
 
+/** Dimensions natives des slides HTML génératives (skill : canvas 1280×720). */
+const HTML_SLIDE_W = 1280;
+const HTML_SLIDE_H = 720;
+
 export default function StellaSlide5_0({
   slide,
   debug,
@@ -200,6 +204,46 @@ export default function StellaSlide5_0({
   debug?: boolean;
 }) {
   const { canvas, objects, background } = slide;
+
+  // Sprint 14e — Chemin B : si le backend fournit le HTML validé QA, on le
+  // rend dans une iframe sandboxée. SÉCURITÉ (règle absolue) :
+  // sandbox="allow-scripts" SANS allow-same-origin (origine opaque, pas
+  // d'accès au DOM parent ni aux cookies) + no-referrer.
+  // Le HTML est nativement 1280×720 → scale CSS vers le canvas déclaré.
+  if (slide.html_content) {
+    const scale = canvas.width / HTML_SLIDE_W;
+    return (
+      <div
+        className="stella-5-0-slide stella-5-0-html"
+        data-slide-id={slide.slide_id}
+        data-debug={debug ? "true" : undefined}
+        style={{
+          position: "relative",
+          width: `${canvas.width}px`,
+          height: `${canvas.height}px`,
+          overflow: "hidden",
+          background: "#ffffff",
+        }}
+      >
+        <iframe
+          title={slide.title || slide.slide_id}
+          srcDoc={slide.html_content}
+          sandbox="allow-scripts"
+          referrerPolicy="no-referrer"
+          loading="lazy"
+          style={{
+            width: `${HTML_SLIDE_W}px`,
+            height: `${HTML_SLIDE_H}px`,
+            border: 0,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+            pointerEvents: "none",
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className={`stella-5-0-slide stella-5-0-bg-${background}`}
