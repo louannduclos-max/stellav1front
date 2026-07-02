@@ -5,10 +5,13 @@ import { useBrandCssVars } from "./useBrandCssVars";
 import { auditAllSlides } from "./qa";
 import type { StellaSlides5_0Payload, StellaQAReport } from "./types";
 
-// Sprint 14e-fix : fallback PROD (URL publique) — cf. StellaSlidesViewport.
-const DEFAULT_BASE_URL =
-  (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) ||
-  "https://stella-backend-mtap.onrender.com";
+// Sprint 14e-fix2 : garde-fou env localhost/http — cf. StellaSlidesViewport.
+const _envUrl = import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined;
+const _envUrlValid =
+  _envUrl && _envUrl.startsWith("https://") && !/localhost|127\.0\.0\.1/.test(_envUrl);
+const DEFAULT_BASE_URL = _envUrlValid
+  ? (_envUrl as string)
+  : "https://stella-backend-mtap.onrender.com";
 
 type Props = {
   baseUrl?: string;

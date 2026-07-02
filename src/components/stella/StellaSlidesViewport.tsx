@@ -5,12 +5,16 @@ import { useBrandCssVars } from "./useBrandCssVars";
 import { auditAllSlides } from "./qa";
 import type { StellaSlides5_0Payload, StellaQAReport } from "./types";
 
-// Sprint 14e-fix : fallback PROD (URL publique, pas un secret). L'ancien
-// fallback localhost cassait le viewer déployé quand VITE_STELLA_PUBLIC_URL
-// n'était pas défini sur CF Pages ("Failed to fetch" constaté en prod).
-const DEFAULT_BASE_URL =
-  (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) ||
-  "https://stella-backend-mtap.onrender.com";
+// Sprint 14e-fix2 : VITE_STELLA_PUBLIC_URL est définie sur CF Pages avec
+// http://127.0.0.1:8000 (constaté au network : 503 + mixed content) — une
+// valeur localhost/http inlinée au build casse la prod. Garde-fou : on
+// n'accepte la variable que si elle est https et non-locale.
+const _envUrl = import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined;
+const _envUrlValid =
+  _envUrl && _envUrl.startsWith("https://") && !/localhost|127\.0\.0\.1/.test(_envUrl);
+const DEFAULT_BASE_URL = _envUrlValid
+  ? (_envUrl as string)
+  : "https://stella-backend-mtap.onrender.com";
 
 type Props = {
   studyId: string;
