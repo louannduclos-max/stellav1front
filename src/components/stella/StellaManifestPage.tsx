@@ -1,8 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const DEFAULT_BASE_URL =
-  (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) ||
-  "http://127.0.0.1:8000";
+// Sprint 14e3 — fallback prod (le localhost cassait les pages déployées)
+const _envUrl = import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined;
+const _envOk =
+  _envUrl && _envUrl.startsWith("https://") && !/localhost|127\.0\.0\.1/.test(_envUrl);
+const DEFAULT_BASE_URL = _envOk
+  ? (_envUrl as string)
+  : "https://stella-backend-mtap.onrender.com";
 
 export type StellaFrontendManifest = {
   study_id?: string;

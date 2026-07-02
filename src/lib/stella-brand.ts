@@ -1,10 +1,11 @@
 const LINK_ID = "stella-theme";
 
 function getBase(): string {
-  return (
-    (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) ??
-    "http://127.0.0.1:8000"
-  );
+  // Sprint 14e3 — fallback prod (le localhost cassait le viewer déployé)
+  const envUrl = import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined;
+  const envOk =
+    envUrl && envUrl.startsWith("https://") && !/localhost|127\.0\.0\.1/.test(envUrl);
+  return envOk ? (envUrl as string) : "https://stella-backend-mtap.onrender.com";
 }
 
 export function setBrand(slug: string): void {

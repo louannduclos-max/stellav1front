@@ -438,10 +438,15 @@ export default function StellaVisualRoute() {
   const params = new URLSearchParams(search);
   const auto = params.get("auto") === "1";
   const studyIdParam = params.get("studyId") || "";
+  // Sprint 14e3 — LE fallback localhost qui cassait la prod était ICI :
+  // la route passait baseUrl=http://127.0.0.1:8000 aux viewports (preuve
+  // network : 503 sur 127.0.0.1). Fallback prod + env acceptée si https.
+  const _envUrl = import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined;
+  const _envOk =
+    _envUrl && _envUrl.startsWith("https://") && !/localhost|127\.0\.0\.1/.test(_envUrl);
   const baseUrl =
     params.get("baseUrl") ||
-    (import.meta.env.VITE_STELLA_PUBLIC_URL as string | undefined) ||
-    "http://127.0.0.1:8000";
+    (_envOk ? (_envUrl as string) : "https://stella-backend-mtap.onrender.com");
   const debug = params.get("debug") === "1";
 
   // Mode auto (DEFAULT_PAYLOAD, rétrocompatible)
